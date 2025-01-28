@@ -6,7 +6,7 @@ const LoadingPage = ({ onComplete }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onComplete(); // Call the callback to switch the page
-    }, 3000); // Loading time of 3 seconds
+    }, 1000); // Loading time of 1 seconds
     return () => clearTimeout(timer);
   }, [onComplete]);
 
@@ -17,7 +17,7 @@ const LoadingPage = ({ onComplete }) => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        height: "25vh", // Full height of the screen
+        height: "25vh",
       }}
     >
       <CircularProgress sx={{ mb: 2 }} />
@@ -34,7 +34,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const handleLoadingComplete = () => {
-    setIsLoading(false); // Set loading state to false after 3 seconds
+    setIsLoading(false); 
   };
 
   return isLoading ? (

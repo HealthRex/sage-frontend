@@ -83,48 +83,19 @@ web_modules/
 .cache
 .parcel-cache
 
-# Next.js build output
-.next
-out
+# Build output
+build/
 
-# Nuxt.js build / generate output
-.nuxt
-dist
+# Dependency directories for React Native
+ios/
+android/
 
-# Gatsby files
-.cache/
-# Comment in the public line in if your project uses Gatsby and not Next.js
-# https://nextjs.org/blog/next-9-1#public-directory-support
-# public
+# Lock files
+package-lock.json
 
-# vuepress build output
-.vuepress/dist
+# IDE files
+.vscode/
+.idea/
 
-# vuepress v2.x temp and cache directory
-.temp
-.cache
-
-# Docusaurus cache and generated files
-.docusaurus
-
-# Serverless directories
-.serverless/
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-# yarn v2
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
+# Optional npm debug files
+npm-debug.log*

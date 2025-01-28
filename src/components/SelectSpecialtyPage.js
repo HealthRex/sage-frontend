@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Typography, Paper, Grid } from "@mui/material";
+import { Box, Typography, Paper } from "@mui/material";
 
 const specialties = [
   { name: "Infectious Disease", response: "24-48 hours" },
@@ -17,56 +17,68 @@ const SelectSpecialtyPage = () => {
   return (
     <Box
       sx={{
-        p: 2, // Adjusted padding
+        p: 2,
         display: "flex",
         flexDirection: "column",
-        alignItems: "left", // Center-aligns content
-        width: "100%", // Full width of the container
+        alignItems: "center",
+        width: "100%",
       }}
     >
-      <Typography variant="h6" alignItems="left" sx={{ mb: 2, fontWeight: "bold" }}>
+      <Typography
+        variant="h6"
+        sx={{
+          mb: 2,
+          fontWeight: "bold",
+          textAlign: "left",
+          width: "100%",
+        }}
+      >
         Select Specialty
       </Typography>
-      <Grid container spacing={2} justifyContent="center">
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: 2,
+          width: "100%",
+        }}
+      >
         {specialties.map((specialty, index) => (
-          <Grid
-            item
-            xs={12} // Full width on mobile
-            sm={6} // Half width on small screens
-            md={4} // One-third width on medium screens
+          <Paper
             key={index}
-          >
-            <Paper
-              onClick={() => handleClick(index)}
-              sx={{
-                p: 2, // Padding inside the button
-                textAlign: "center",
-                cursor: "pointer",
+            onClick={() => handleClick(index)}
+            sx={{
+              p: 2,
+              textAlign: "center",
+              cursor: "pointer",
+              backgroundColor:
+                selectedSpecialty === index ? "primary.main" : "background.paper",
+              color: selectedSpecialty === index ? "white" : "text.primary",
+              height: "120px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "calc(30% - 16px)",
+              minWidth: "200px",
+              boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.15)",
+              "&:hover": {
                 backgroundColor:
-                  selectedSpecialty === index ? "primary.main" : "background.paper",
-                color: selectedSpecialty === index ? "white" : "text.primary",
-                height: "100px", // Adjusted height
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
-                boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.15)", // Slightly smaller shadow
-                "&:hover": {
-                  backgroundColor:
-                    selectedSpecialty === index
-                      ? "primary.main"
-                      : "grey.200", // Hover color for non-selected buttons
-                },
-              }}
-            >
-              <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                {specialty.name}
-              </Typography>
-              <Typography variant="body2">{specialty.response}</Typography>
-            </Paper>
-          </Grid>
+                  selectedSpecialty === index ? "primary.main" : "grey.200",
+              },
+              "@media (max-width: 600px)": {
+                width: "100%", // Full width for small screens
+              },
+            }}
+          >
+            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+              {specialty.name}
+            </Typography>
+            <Typography variant="body2">{specialty.response}</Typography>
+          </Paper>
         ))}
-      </Grid>
+      </Box>
     </Box>
   );
 };

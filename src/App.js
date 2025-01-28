@@ -10,17 +10,16 @@ const App = () => {
     sx={{
       display: "flex",
       flexDirection: "column",
-      minHeight: "100vh", // Ensure the page takes full height
+      minHeight: "100vh", 
     }}
   >
-      {/* Main Content */}
       <Header />
       <Container
         maxWidth="lg"
         sx={{
           marginTop: 4,
           marginBottom: 4,
-          flex: 1, // Makes the main content expand to fill available space
+          flex: 1, 
           display: "flex",
           justifyContent: "center",
           padding: "0 0"

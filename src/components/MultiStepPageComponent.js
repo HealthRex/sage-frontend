@@ -62,7 +62,6 @@ const MultiStepPageComponent = () => {
             ))}
           </Stepper>
 
-          {/* Fixed Height Content Area */}
           <Box
             sx={{
               display: "flex",
