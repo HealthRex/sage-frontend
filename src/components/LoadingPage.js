@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography, CircularProgress} from "@mui/material";
 import ConsultPage from'./ConsultPage';
-// Loading Page Component
+
 const LoadingPage = ({ onComplete }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
