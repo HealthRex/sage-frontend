@@ -1,12 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { Box, Typography, CircularProgress} from "@mui/material";
-import ConsultPage from'./ConsultPage';
+"use client";
 
-const LoadingPage = ({ onComplete }) => {
+import React, { useEffect } from "react";
+import { Box, Typography, CircularProgress } from "@mui/material";
+
+interface LoadingPageProps {
+  onComplete: () => void;
+}
+
+const LoadingPage: React.FC<LoadingPageProps> = ({ onComplete }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onComplete(); // Call the callback to switch the page
-    }, 1000); // Loading time of 1 seconds
+    }, 1000); // Loading time of 1 second
     return () => clearTimeout(timer);
   }, [onComplete]);
 
@@ -28,20 +33,5 @@ const LoadingPage = ({ onComplete }) => {
     </Box>
   );
 };
-<ConsultPage/>
-// Main App Component
-const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
 
-  const handleLoadingComplete = () => {
-    setIsLoading(false); 
-  };
-
-  return isLoading ? (
-    <LoadingPage onComplete={handleLoadingComplete} />
-  ) : (
-    <ConsultPage />
-  );
-};
-
-export default App;
+export default LoadingPage;

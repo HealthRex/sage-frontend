@@ -1,18 +1,22 @@
+"use client";
+
 import React, { useState } from "react";
 import { Box, Typography, Paper } from "@mui/material";
 
-const specialties = [
+interface Specialty {
+  name: string;
+  response: string;
+}
+
+const specialties: Specialty[] = [
   { name: "Infectious Disease", response: "24-48 hours" },
   { name: "Endocrinology", response: "24-72 hours" },
   { name: "Haematology", response: "24-48 hours" },
 ];
 
-const SelectSpecialtyPage = () => {
-  const [selectedSpecialty, setSelectedSpecialty] = useState(null);
 
-  const handleClick = (index) => {
-    setSelectedSpecialty(index); // Update the selected button
-  };
+  export default function SelectSpecialtyPage() {
+  const [selectedSpecialty, setSelectedSpecialty] = useState<number | null>(null);
 
   return (
     <Box
@@ -26,15 +30,11 @@ const SelectSpecialtyPage = () => {
     >
       <Typography
         variant="h6"
-        sx={{
-          mb: 2,
-          fontWeight: "bold",
-          textAlign: "left",
-          width: "100%",
-        }}
+        sx={{ mb: 2, fontWeight: "bold", textAlign: "left", width: "100%" }}
       >
         Select Specialty
       </Typography>
+
       <Box
         sx={{
           display: "flex",
@@ -47,7 +47,7 @@ const SelectSpecialtyPage = () => {
         {specialties.map((specialty, index) => (
           <Paper
             key={index}
-            onClick={() => handleClick(index)}
+            onClick={() => setSelectedSpecialty(index)}
             sx={{
               p: 2,
               textAlign: "center",
@@ -67,9 +67,6 @@ const SelectSpecialtyPage = () => {
                 backgroundColor:
                   selectedSpecialty === index ? "primary.main" : "grey.200",
               },
-              "@media (max-width: 600px)": {
-                width: "100%", // Full width for small screens
-              },
             }}
           >
             <Typography variant="body1" sx={{ fontWeight: "bold" }}>
@@ -82,5 +79,3 @@ const SelectSpecialtyPage = () => {
     </Box>
   );
 };
-
-export default SelectSpecialtyPage;

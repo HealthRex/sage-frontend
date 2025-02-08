@@ -2,7 +2,7 @@
 
 ## Overview
 
-**assist-pc-frontend** is a modern, modular front-end application built using React.js. It provides a streamlined development environment with integrated tools for linting, testing, Docker support, and deployment workflows. This project is tailored for building responsive and accessible web applications.
+**assist-pc-frontend** is a modern, modular front-end application built using Next.js and Type script. It provides a streamlined development environment with integrated tools for linting, testing, Docker support, and deployment workflows. This project is tailored for building responsive and accessible web applications.
 
 ---
 
@@ -65,7 +65,7 @@ Deployment pipelines are managed using GitHub Actions. Each commit to the `main`
 
 To dive deeper into the technologies used:
 
-- [React.js Documentation](https://react.dev/learn): Learn about the framework's features.
+- [Next.js Documentation](https://nextjs.org/docs): Learn about the framework's features.
 - [GitHub Actions](https://docs.github.com/en/actions): Automate workflows.
 
 ---

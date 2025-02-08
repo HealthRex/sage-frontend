@@ -1,8 +1,24 @@
+"use client";
+
 import React from "react";
 import { Box, Typography, Paper, Link } from "@mui/material";
 
-const EConsultPage = () => {
-  const labData = [
+interface LabData {
+  label: string;
+  value: string;
+  status: "Normal" | "Abnormal";
+  reference: string;
+  date: string;
+}
+
+interface HistoryData {
+  title: string;
+  detail: string;
+  date: string;
+}
+
+export default function ConsultPage() {
+  const labData: LabData[] = [
     {
       label: "TSH",
       value: "8.2 mIU/L",
@@ -26,7 +42,7 @@ const EConsultPage = () => {
     },
   ];
 
-  const historyData = [
+  const historyData: HistoryData[] = [
     {
       title: "Past Medical History",
       detail: "No thyroid disease history",
@@ -113,7 +129,7 @@ const EConsultPage = () => {
           </Typography>
           <Typography variant="body1" sx={{ mb: 1 }}>
             Based on available data, this appears to be subclinical
-            hypothyroidism with positive antibodies, suggesting Hashimoto's
+            hypothyroidism with positive antibodies, suggesting Hashimotos
             thyroiditis.
           </Typography>
           <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
@@ -136,8 +152,7 @@ const EConsultPage = () => {
               </Typography>
               <Typography variant="body2">{history.detail}</Typography>
               <Typography variant="body2" color="textSecondary">
-                Date: {history.date}
-              </Typography>
+                Date: {history.date}</Typography>
             </Box>
           ))}
         </Box>
@@ -154,5 +169,3 @@ const EConsultPage = () => {
     </Box>
   );
 };
-
-export default EConsultPage;
