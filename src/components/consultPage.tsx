@@ -1,63 +1,51 @@
 "use client";
 
 import React from "react";
-import { Box, Typography, Paper, Link } from "@mui/material";
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  Paper,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
 
-interface LabData {
-  label: string;
-  value: string;
-  status: "Normal" | "Abnormal";
-  reference: string;
-  date: string;
+interface ApiResponse {
+  specialistSummary: string;
+  populatedTemplate: object[];
+  specialistAIResponse: {
+    summaryResponse: string;
+    suggestedLabOrders: string[];
+    suggestedImaging: string[];
+    suggestedMedications: string[];
+  };
 }
 
-interface HistoryData {
-  title: string;
-  detail: string;
-  date: string;
+interface ConsultPageProps {
+  response: ApiResponse | null;
 }
 
-export default function ConsultPage() {
-  const labData: LabData[] = [
-    {
-      label: "TSH",
-      value: "8.2 mIU/L",
-      status: "Abnormal",
-      reference: "0.4-4.0",
-      date: "2024-11-30",
-    },
-    {
-      label: "Free T4",
-      value: "0.9 ng/dL",
-      status: "Normal",
-      reference: "0.8-1.8",
-      date: "2024-11-30",
-    },
-    {
-      label: "TPO Antibodies",
-      value: "180 IU/mL",
-      status: "Abnormal",
-      reference: "<35",
-      date: "2024-11-30",
-    },
-  ];
-
-  const historyData: HistoryData[] = [
-    {
-      title: "Past Medical History",
-      detail: "No thyroid disease history",
-      date: "2024-10-15",
-    },
-    {
-      title: "Family History",
-      detail: "Mother with hypothyroidism",
-      date: "2024-10-15",
-    },
-  ];
+const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
+  if (!response) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Fetching E-Consult Data...</Typography>
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      {/* Left Side (Fixed Section) */}
+    <Box sx={{ display: "flex", overflow: "auto" }}>
+      {/* Left Side (Lab Data & History) */}
       <Box
         sx={{
           width: "50%",
@@ -67,105 +55,123 @@ export default function ConsultPage() {
         }}
       >
         <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
-          Endocrinology E-Consult
-        </Typography>
-
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          E-Consult Turnaround: <b>24-48 hours</b>
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          In-Person Wait: <b>2-3 months</b>
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          Resolution Rate: <b>73% without visit</b>
-        </Typography>
-
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
           Auto-populated Data
         </Typography>
-
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {labData.map((lab, index) => (
-            <Paper
-              key={index}
-              sx={{
-                p: 2,
-                backgroundColor:
-                  lab.status === "Abnormal" ? "#ffe6e6" : "#e6ffe6",
-                borderLeft: `4px solid ${
-                  lab.status === "Abnormal" ? "red" : "green"
-                }`,
-              }}
-            >
-              <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                {lab.label}
-              </Typography>
-              <Typography variant="body2">Value: {lab.value}</Typography>
-              <Typography variant="body2" color="textSecondary">
-                Reference: {lab.reference}
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                Date: {lab.date}
-              </Typography>
+          {response && (
+            <Paper elevation={3} sx={{ p: 1 }}>
+              <List>
+                {response.populatedTemplate.map((item, index) => (
+                  <ListItem key={index} divider>
+                    {Object.entries(item).map(([key, value]) => (
+                      <ListItemText
+                        key={key}
+                        primary={key}
+                        secondary={value || "N/A"}
+                      />
+                    ))}
+                  </ListItem>
+                ))}
+              </List>
             </Paper>
-          ))}
+          )}
         </Box>
       </Box>
 
-      {/* Right Side (Fixed Section) */}
-      <Box
-        sx={{
-          width: "50%",
-          p: 3,
-          backgroundColor: "#ffffff",
-        }}
-      >
-        <Paper sx={{ p: 2, mb: 3 }}>
+      <Box sx={{ p: 2, pt: 0.1, mb: 3, boxShadow: 0, width: "50%" }}>
+        {/* AI-Generated Response */}
+        <Paper sx={{ p: 2, mb: 2, borderRadius: 2, boxShadow: 2 }}>
           <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
-            AI-Generated Response
+            Specialist Summary
           </Typography>
-          <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-            AI Confidence: <b>High</b>
+          <Typography variant="body1" component="div" sx={{ mb: 2 }}>
+            {response.specialistSummary}
           </Typography>
-          <Typography variant="body1" sx={{ mb: 1 }}>
-            Based on available data, this appears to be subclinical
-            hypothyroidism with positive antibodies, suggesting Hashimotos
-            thyroiditis.
-          </Typography>
-          <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
-            Likely Recommendations:
-          </Typography>
-          <ul>
-            <li>Start levothyroxine 50mcg daily</li>
-            <li>Reassess thyroid function in 6 weeks</li>
-          </ul>
         </Paper>
 
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
-          Relevant History
-        </Typography>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 3 }}>
-          {historyData.map((history, index) => (
-            <Box key={index} sx={{ mb: 1 }}>
-              <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                {history.title}
-              </Typography>
-              <Typography variant="body2">{history.detail}</Typography>
-              <Typography variant="body2" color="textSecondary">
-                Date: {history.date}</Typography>
-            </Box>
-          ))}
-        </Box>
+        {/* Suggested Lab Orders */}
+        {response.specialistAIResponse.suggestedMedications.length > 0 && (
+          <Paper sx={{ p: 2, mb: 2, borderRadius: 2, boxShadow: 2 }}>
+            <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
+              Suggested Lab Orders
+            </Typography>
+            <List sx={{ listStyleType: "disc", pl: 2 }}>
+              {response.specialistAIResponse.suggestedLabOrders.map(
+                (line, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{ display: "list-item", p: 0.3, pl: 0 }}
+                  >
+                    <ListItemText primary={line} />
+                  </ListItem>
+                )
+              )}
+            </List>
+          </Paper>
+        )}
+        {/* Suggested Imaging */}
+        {response.specialistAIResponse.suggestedImaging.length > 0 && (
+          <Paper sx={{ p: 2, mb: 2, borderRadius: 2, boxShadow: 2 }}>
+            <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
+              Suggested Imaging
+            </Typography>
+            <List sx={{ listStyleType: "disc", pl: 2 }}>
+              {response.specialistAIResponse.suggestedImaging.map(
+                (line, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{ display: "list-item", p: 0.3, pl: 0 }}
+                  >
+                    <ListItemText primary={line} />
+                  </ListItem>
+                )
+              )}
+            </List>
+          </Paper>
+        )}
 
-        <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
-          Quick References
-        </Typography>
-        <Typography variant="body2">
-          <Link href="#" underline="hover">
+        {/* Suggested Medications */}
+        {response.specialistAIResponse.suggestedMedications.length > 0 && (
+          <Paper sx={{ p: 2, mb: 2, borderRadius: 2, boxShadow: 2 }}>
+            <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
+              Suggested Medications
+            </Typography>
+            <List sx={{ listStyleType: "disc", pl: 2 }}>
+              {response.specialistAIResponse.suggestedMedications.map(
+                (line, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{ display: "list-item", p: 0.3, pl: 0 }}
+                  >
+                    <ListItemText primary={line} />
+                  </ListItem>
+                )
+              )}
+            </List>
+          </Paper>
+        )}
+        {/* AI Summary */}
+        <Paper sx={{ p: 2, mb: 2, borderRadius: 2, boxShadow: 2 }}>
+          <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
+            AI Summary
+          </Typography>
+          <Typography variant="body1" component="div" sx={{ mb: 2 }}>
+            {response.specialistAIResponse.summaryResponse}
+          </Typography>
+        </Paper>
+        <Paper sx={{ p: 2, mb: 2, borderRadius: 2, boxShadow: 2 }}>
+          <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
+            Quick References
+          </Typography>
+          <Typography variant="body2">
+            {/* <Link href="#" underline="hover">
             ATA Guidelines: Subclinical Hypothyroidism
-          </Link>
-        </Typography>
+          </Link> */}
+          </Typography>
+        </Paper>
       </Box>
     </Box>
   );
 };
+
+export default ConsultPage;

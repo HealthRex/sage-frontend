@@ -1,27 +1,72 @@
 "use client";
 
-import { Box, TextField, Typography } from "@mui/material";
+import { Box, TextField, Typography, FormControl, FormHelperText } from "@mui/material";
 import React from "react";
 
+interface ClinicalQuestionPageProps {
+  setClinicalQuestion: (question: string) => void;
+  setClinicalNotes: (question: string) => void;
+  questionError: string;
+  notesError: string;
+  setQuestionError: (question: string) => void;
+  setNotesError: (question: string) => void;
+}
 
-export default function ClinicalQuestionPage() {
+export default function ClinicalQuestionPage({ questionError, notesError, setQuestionError, setClinicalQuestion, setClinicalNotes, setNotesError }: ClinicalQuestionPageProps) {
+  
+  const handleQuestionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setClinicalQuestion(value);
+    if (value.trim().split(" ").length < 5) {
+      setQuestionError("Clinical question must be at least 5 words long.");
+    } else {
+      setQuestionError("");
+    }
+  };
+
+  const handleNotesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setClinicalNotes(value);
+    if (value.trim().split(" ").length < 5) {
+      setNotesError("Clinical notes must be at least 5 words long.");
+    } else {
+      setNotesError("");
+    }
+  };
+
   return (
     <Box sx={{ alignItems: "flex-start", width: "100%" }}>
-      <Typography
-        variant="h6"
-        align="left"
-        sx={{ mb: 2, fontWeight: "bold" }}
-      >
-        Whats your clinical question?
+      <Typography variant="h6" align="left" sx={{ mb: 2, fontWeight: "bold" }}>
+        What is your clinical question?
       </Typography>
-      <TextField
-        label="Example: 52F with elevated TSH 8.2 on routine screening. No obvious symptoms. TPO antibodies positive. Should we start levothyroxine?"
-        fullWidth
-        multiline
-        rows={4}
-        placeholder="Example: 52F with elevated TSH 8.2 on routine screening. No obvious symptoms. TPO antibodies positive. Should we start levothyroxine?"
-        sx={{ mb: 3 }}
-      />
+      <FormControl fullWidth sx={{ mb: 0 }}>
+        <TextField
+          label="Enter your clinical question"
+          multiline
+          rows={3}
+          onChange={handleQuestionChange}
+          error={!!questionError}
+          
+        />
+        <FormHelperText error={!!questionError} sx={{ minHeight: '1.7em' }}>
+          {questionError}
+        </FormHelperText>
+      </FormControl>
+      <Typography variant="h6" align="left" sx={{ mb: 2, fontWeight: "bold" }}>
+        What are your clinical notes?
+      </Typography>
+      <FormControl fullWidth sx={{ mb: 0 }}>
+        <TextField
+          label="Enter your clinical notes"
+          multiline
+          rows={7}
+          onChange={handleNotesChange}
+          error={!!notesError}
+        />
+        <FormHelperText error={!!notesError} sx={{ minHeight: '1.7em' }}>
+          {notesError}
+        </FormHelperText>
+      </FormControl>
     </Box>
   );
-};
+}
