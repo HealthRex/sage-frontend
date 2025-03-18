@@ -1,20 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Button, Stepper, Step, StepLabel } from "@mui/material";
+import {
+  Box,
+  Button,
+  Stepper,
+  Step,
+  StepLabel,
+  CircularProgress,
+} from "@mui/material";
 import ClinicalQuestionPage from "./clinicalQuestionPage";
-import SelectSpecialtyPage from "./selectSpecialtyPage";
 import ConsultPage from "./consultPage";
 import LoadingPage from "./loadingPage";
 import { postData } from "@/utils/api";
 
-const steps = ["Clinical Question", "Select Specialty", "Review"];
+const steps = ["Clinical Question", "Review"];
 
 export default function MultiStepPageComponent() {
   const [activeStep, setActiveStep] = useState<number>(0);
   const [clinicalQuestion, setClinicalQuestion] = useState<string>("");
   const [clinicalNotes, setClinicalNotes] = useState<string>("");
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
   const [questionError, setQuestionError] = useState("");
@@ -29,6 +34,8 @@ export default function MultiStepPageComponent() {
     originalQuestion: "",
     suggestions: [],
   });
+  const [isLoadingSuggestions, setIsLoadingSuggestions] =
+    useState<boolean>(false);
 
   interface SuggestionsResp {
     assessment: {
@@ -57,7 +64,7 @@ export default function MultiStepPageComponent() {
       return;
     }
 
-    setIsLoading(true);
+    setIsLoadingSuggestions(true);
     try {
       const endpoint = "http://localhost:3002/suggestions";
       const payload = {
@@ -75,7 +82,7 @@ export default function MultiStepPageComponent() {
       console.error("Error querying the API:", error);
       alert("Failed to get a response from the API.");
     } finally {
-      setIsLoading(false);
+      setIsLoadingSuggestions(false);
     }
   };
 
@@ -83,11 +90,14 @@ export default function MultiStepPageComponent() {
     setIsLoading(true);
     // setClinicalQuestion(clinicalQuestion);
     try {
-      const requestBody = { 
+      const requestBody = {
         question: clinicalQuestion,
-        clinicalNotes: clinicalNotes
-       };
-      const response = await postData<ApiResponse | null>("http://localhost:3003/referral", requestBody);
+        clinicalNotes: clinicalNotes,
+      };
+      const response = await postData<ApiResponse | null>(
+        "http://localhost:3003/referral",
+        requestBody
+      );
       setApiResponse(response);
     } catch (error) {
       console.error("Error submitting data:", error);
@@ -111,15 +121,11 @@ export default function MultiStepPageComponent() {
         setNotesError("Clinical notes must be at least 5 words long.");
         return;
       }
-      handleTextQuery();
-    }
-    if (activeStep === steps.length - 2) {
       handleSubmit();
     }
     setActiveStep((prev) => prev + 1);
   };
-  
-  console.log(selectedSpecialty);
+
 
   return (
     <Box sx={{ p: 3 }}>
@@ -140,23 +146,41 @@ export default function MultiStepPageComponent() {
             setQuestionError={setQuestionError}
             setClinicalQuestion={setClinicalQuestion}
             setClinicalNotes={setClinicalNotes}
+            data={suggestions}
           />
-        ) : activeStep === 1 ? (
-          isLoading ? <LoadingPage /> : <SelectSpecialtyPage  data={suggestions}
-          setSelectedSpecialty={setSelectedSpecialty}
-          setClinicalQuestion={setClinicalQuestion} /> // Pass function to update question
+        ) : isLoading ? (
+          <LoadingPage />
         ) : (
-          isLoading ? <LoadingPage /> : <ConsultPage response={apiResponse} />
+          <ConsultPage response={apiResponse} />
         )}
       </Box>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-        <Button onClick={() => setActiveStep(Math.max(activeStep - 1, 0))} disabled={activeStep === 0}>
-          Back
-        </Button>
-        <Button variant="contained" onClick={handleNext}>
-          {activeStep === steps.length - 1 ? "Submit" : "Next"}
-        </Button>
+        {activeStep === 0 && (
+          <Button
+            variant="contained"
+            color="success"
+            sx={{ bgcolor: "green" }}
+            onClick={handleTextQuery}
+            disabled={isLoadingSuggestions}
+          >
+            {isLoadingSuggestions ? (
+              <CircularProgress size={24} />
+            ) : (
+              "Get Suggestions"
+            )}
+          </Button>
+        )}
+        <Box sx={{ flexGrow: 1 }} />
+          {activeStep === steps.length - 1 ? (
+            <Button variant="contained">
+              Submit
+            </Button>
+          ) : (
+            <Button variant="contained" onClick={handleNext}>
+              Next
+            </Button>
+          )}
       </Box>
     </Box>
   );

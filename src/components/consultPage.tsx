@@ -10,6 +10,8 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
+import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 
 interface ApiResponse {
   specialistSummary: string;
@@ -90,7 +92,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
         </Paper>
 
         {/* Suggested Lab Orders */}
-        {response.specialistAIResponse.suggestedMedications.length > 0 && (
+        {Array.isArray(response.specialistAIResponse.suggestedLabOrders) && response.specialistAIResponse.suggestedLabOrders.length > 0 && (
           <Paper sx={{ p: 2, mb: 2, borderRadius: 2, boxShadow: 2 }}>
             <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
               Suggested Lab Orders
@@ -156,7 +158,9 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
             AI Summary
           </Typography>
           <Typography variant="body1" component="div" sx={{ mb: 2 }}>
-            {response.specialistAIResponse.summaryResponse}
+            <ReactMarkdown>
+              {response.specialistAIResponse.summaryResponse}
+            </ReactMarkdown>
           </Typography>
         </Paper>
         <Paper sx={{ p: 2, mb: 2, borderRadius: 2, boxShadow: 2 }}>
@@ -164,9 +168,9 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
             Quick References
           </Typography>
           <Typography variant="body2">
-            {/* <Link href="#" underline="hover">
+            <Link href="#">
             ATA Guidelines: Subclinical Hypothyroidism
-          </Link> */}
+          </Link>
           </Typography>
         </Paper>
       </Box>
