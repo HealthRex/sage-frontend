@@ -66,7 +66,7 @@ export default function MultiStepPageComponent() {
 
     setIsLoadingSuggestions(true);
     try {
-      const endpoint = "http://localhost:3002/suggestions";
+      const endpoint = "https://suggestionsai-backend.onrender.com/suggestions";
       const payload = {
         clinicalQuestion: clinicalQuestion,
         clinicalNotes: clinicalNotes,
@@ -95,7 +95,7 @@ export default function MultiStepPageComponent() {
         clinicalNotes: clinicalNotes,
       };
       const response = await postData<ApiResponse | null>(
-        "http://localhost:3003/referral",
+        "https://assist-pc-backend.onrender.com/referral",
         requestBody
       );
       setApiResponse(response);
