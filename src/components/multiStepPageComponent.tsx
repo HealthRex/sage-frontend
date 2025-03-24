@@ -52,9 +52,7 @@ export default function MultiStepPageComponent() {
     populatedTemplate: object[];
     specialistAIResponse: {
       summaryResponse: string;
-      suggestedLabOrders: string[];
-      suggestedImaging: string[];
-      suggestedMedications: string[];
+      citations: string[];
     };
   }
 

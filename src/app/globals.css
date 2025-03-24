@@ -35,6 +35,27 @@ a {
   text-decoration: none;
 }
 
+
+.specialist-response {
+  line-height: 1.5;
+}
+
+.specialist-response h3{
+  margin-bottom: 10px;
+}
+
+
+.specialist-response hr {
+  margin: 15px 0;
+}
+
+.specialist-response ul li {
+  margin: 5px 0px 0px 15px;
+}
+
+
+
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
