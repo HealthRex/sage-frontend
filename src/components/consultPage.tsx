@@ -30,6 +30,16 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
     return null;
   }
 
+const renderWithCitations = (text: string, specialistAIResponse: { citations: string[]; }) => {
+  const lineToRemove = "Sure, let's address the question step by step.";
+  const cleanedText = text.replace(new RegExp(lineToRemove, "g"), ""); // Remove the specified line
+  return cleanedText.replace(/\[([0-9]+)\]\(#ref-[a-zA-Z0-9]+\)/g, (match, index) => {
+    const citationIndex = parseInt(index, 10) - 1;
+    const citation = specialistAIResponse.citations[citationIndex];
+    return citation ? `[${index}](${citation})` : match;
+  });
+};
+
   return (
     <Box sx={{ display: "flex", overflow: "auto" }}>
       {/* Left Side (Lab Data & History) */}
@@ -53,8 +63,38 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
                     {Object.entries(item).map(([key, value]) => (
                       <ListItemText
                         key={key}
-                        primary={key}
-                        secondary={value || "N/A"}
+                        primary={
+                          <span style={{ display: "block", marginBottom: "0.5rem" }}>
+                            {key}
+                          </span>
+                        }
+                        secondary={
+                          typeof value === "string" && value.includes("\n") ? (
+                            <ul style={{ margin: 0, paddingLeft: "1.5rem", listStyleType: "none" }}>
+                              {value.split("\n").map((line, i) => (
+                                <li key={i}>
+                                  {line.includes(":") ? (
+                                    <>
+                                      <strong>{line.split(":")[0]}</strong>
+                                      {line.slice(line.indexOf(":"))}
+                                    </>
+                                  ) : (
+                                    line
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            value && typeof value === "string" && value.includes(":") ? (
+                              <>
+                                <strong>{value.split(":")[0]}</strong>
+                                {value.slice(value.indexOf(":"))}
+                              </>
+                            ) : (
+                              value || "N/A"
+                            )
+                          )
+                        }
                       />
                     ))}
                   </ListItem>
@@ -80,8 +120,16 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
             AI Generated Response
           </Typography>
           <Typography variant="body1" component="div" sx={{ mb: 2 }}  className="specialist-response" >
-            <ReactMarkdown>
-              {response.specialistAIResponse.summaryResponse}
+            <ReactMarkdown
+              components={{
+                a: ({ href, children }) => (
+                  <a href={href?.startsWith("http") ? href : `https://${href}`} style={{ color: "blue", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer">
+                    {children}
+                  </a>
+                ),
+              }}
+            >
+              {renderWithCitations(response.specialistAIResponse.summaryResponse, { citations: response.specialistAIResponse.citations })}
             </ReactMarkdown>
           </Typography>
         </Paper>

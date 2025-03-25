@@ -7,7 +7,6 @@ import {
   Stepper,
   Step,
   StepLabel,
-  CircularProgress,
 } from "@mui/material";
 import ClinicalQuestionPage from "./clinicalQuestionPage";
 import ConsultPage from "./consultPage";
@@ -24,29 +23,7 @@ export default function MultiStepPageComponent() {
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
   const [questionError, setQuestionError] = useState("");
   const [notesError, setNotesError] = useState("");
-  const [suggestions, setSuggestions] = useState<SuggestionsResp>({
-    assessment: {
-      appropriate: false,
-      missingKeyInfo: null,
-      reason: null,
-    },
-    clinicalNotes: "",
-    originalQuestion: "",
-    suggestions: [],
-  });
-  const [isLoadingSuggestions, setIsLoadingSuggestions] =
-    useState<boolean>(false);
 
-  interface SuggestionsResp {
-    assessment: {
-      appropriate: boolean;
-      missingKeyInfo: string | null;
-      reason: string | null;
-    };
-    clinicalNotes: string;
-    originalQuestion: string;
-    suggestions: string[];
-  }
   interface ApiResponse {
     specialistSummary: string;
     populatedTemplate: object[];
@@ -56,33 +33,6 @@ export default function MultiStepPageComponent() {
     };
   }
 
-  const handleTextQuery = async () => {
-    if (!clinicalQuestion.trim() || !clinicalNotes.trim()) {
-      alert("Both Clinical Question and Clinical Notes are required.");
-      return;
-    }
-
-    setIsLoadingSuggestions(true);
-    try {
-      const endpoint = "https://suggestionsai-backend.onrender.com/suggestions";
-      const payload = {
-        clinicalQuestion: clinicalQuestion,
-        clinicalNotes: clinicalNotes,
-      };
-
-      const response = await postData<SuggestionsResp>(endpoint, payload);
-      if (response) {
-        setSuggestions(response);
-      } else {
-        alert("Failed to get a valid response from the API.");
-      }
-    } catch (error) {
-      console.error("Error querying the API:", error);
-      alert("Failed to get a response from the API.");
-    } finally {
-      setIsLoadingSuggestions(false);
-    }
-  };
 
   async function handleSubmit() {
     setIsLoading(true);
@@ -144,7 +94,6 @@ export default function MultiStepPageComponent() {
             setQuestionError={setQuestionError}
             setClinicalQuestion={setClinicalQuestion}
             setClinicalNotes={setClinicalNotes}
-            data={suggestions}
           />
         ) : isLoading ? (
           <LoadingPage />
@@ -154,21 +103,6 @@ export default function MultiStepPageComponent() {
       </Box>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-        {activeStep === 0 && (
-          <Button
-            variant="contained"
-            color="success"
-            sx={{ bgcolor: "green" }}
-            onClick={handleTextQuery}
-            disabled={isLoadingSuggestions}
-          >
-            {isLoadingSuggestions ? (
-              <CircularProgress size={24} />
-            ) : (
-              "Get Suggestions"
-            )}
-          </Button>
-        )}
         <Box sx={{ flexGrow: 1 }} />
           {activeStep === steps.length - 1 ? (
             <Button variant="contained">
