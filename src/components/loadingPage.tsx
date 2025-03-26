@@ -3,16 +3,13 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, CircularProgress, Backdrop } from "@mui/material";
 
-interface LoadingPageProps {
-  message?: string; // Optional message
-}
 
 interface PhaseContent {
   heading: string;
   steps: string[];
 }
 
-const LoadingPage: React.FC<LoadingPageProps> = ({ message }) => {
+const LoadingPage: React.FC = () => {
   const [phase, setPhase] = useState<1 | 2 | 3>(1);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [showPhase1, setShowPhase1] = useState<boolean>(true);
@@ -49,7 +46,7 @@ const LoadingPage: React.FC<LoadingPageProps> = ({ message }) => {
     return () => clearTimeout(timer);
   }, [phase, step]);
 
-  const getPhaseContent = (phaseNumber: 1 | 2 | 3, stepNumber: 1 | 2 | 3): PhaseContent => {
+  const getPhaseContent = (phaseNumber: 1 | 2 | 3): PhaseContent => {
     switch (phaseNumber) {
       case 1:
         return {
@@ -83,7 +80,7 @@ const LoadingPage: React.FC<LoadingPageProps> = ({ message }) => {
     }
   };
 
-  const currentPhaseContent: PhaseContent = getPhaseContent(phase, step);
+  const currentPhaseContent: PhaseContent = getPhaseContent(phase);
 
   return (
     <Backdrop open={true} sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}>
