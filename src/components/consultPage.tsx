@@ -14,26 +14,25 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import Divider from '@mui/material/Divider';
 
-interface ConsultPageProps {
-  summaryAndTemplate: {
-    specialistSummary: string;
-    populatedTemplate: object[];
-  } | null;
+interface ApiResponse {
+  specialistSummary: string;
+  populatedTemplate: object[];
   specialistAIResponse: {
     summaryResponse: string;
     citations: string[];
-  } | null;
+  };
 }
 
+interface ConsultPageProps {
+  response: ApiResponse | null;
+}
 interface PhaseContent {
   heading: string;
   steps: string[];
 }
 
-const ConsultPage: React.FC<ConsultPageProps> = ({
-  summaryAndTemplate,
-  specialistAIResponse,
-}) => {
+
+const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
   const [phase, setPhase] = useState<1 | 2 | 3>(1);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [showPhase1, setShowPhase1] = useState<boolean>(true);
@@ -76,8 +75,8 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   }, [phase, step]);
 
   useEffect(() => {
-    if (specialistAIResponse?.summaryResponse) {
-      const words = specialistAIResponse.summaryResponse.split(" "); // Split text into words
+    if (response && response.specialistAIResponse?.summaryResponse) {
+      const words = response.specialistAIResponse.summaryResponse.split(" "); // Split text into words
       let currentIndex = 0;
 
       const interval = setInterval(() => {
@@ -90,8 +89,8 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
           clearInterval(interval);
 
           // Move startTypingCitations function here
-          if (specialistAIResponse?.citations) {
-            const citations = specialistAIResponse.citations;
+          if (response.specialistAIResponse?.citations) {
+            const citations = response.specialistAIResponse.citations;
             let citationIndex = 0;
 
             const citationInterval = setInterval(() => {
@@ -108,11 +107,11 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
 
       return () => clearInterval(interval);
     }
-  }, [specialistAIResponse?.summaryResponse, specialistAIResponse?.citations]);
+  }, [response?.specialistAIResponse?.summaryResponse, response?.specialistAIResponse?.citations]);
 
   useEffect(() => {
-    if (summaryAndTemplate?.specialistSummary) {
-      const text = summaryAndTemplate.specialistSummary;
+    if (response && response.specialistSummary) {
+      const text = response.specialistSummary;
       let currentIndex = 0;
 
       const interval = setInterval(() => {
@@ -126,11 +125,11 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
 
       return () => clearInterval(interval);
     }
-  }, [summaryAndTemplate?.specialistSummary]);
+  }, [response?.specialistSummary]);
 
   useEffect(() => {
-    if (summaryAndTemplate?.populatedTemplate) {
-      const templateItems = summaryAndTemplate.populatedTemplate;
+    if (response && response.populatedTemplate) {
+      const templateItems = response.populatedTemplate;
       let currentIndex = 0;
 
       const interval = setInterval(() => {
@@ -147,7 +146,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
 
       return () => clearInterval(interval);
     }
-  }, [summaryAndTemplate?.populatedTemplate]);
+  }, [response?.populatedTemplate]);
 
   const getPhaseContent = (phaseNumber: 1 | 2 | 3): PhaseContent => {
     switch (phaseNumber) {
@@ -221,7 +220,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {summaryAndTemplate ? (
+          {response ? (
             <>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
                 Auto-populated Data
@@ -260,7 +259,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                             secondary={
                               typeof value === "string" &&
                               value.includes("\n") ? (
-                                <div
+                                <span
                                   style={{
                                     margin: 0,
                                     paddingLeft: "1.5rem",
@@ -268,7 +267,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                                   }}
                                 >
                                   {value.split("\n").map((line, i) => (
-                                    <div key={i}>
+                                    <span key={i}>
                                       {line.includes(":") ? (
                                         <>
                                           <strong>{line.split(":")[0]}</strong>
@@ -277,9 +276,9 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                                       ) : (
                                         line
                                       )}
-                                    </div>
+                                    </span>
                                   ))}
-                                </div>
+                                </span>
                               ) : value &&
                                 typeof value === "string" &&
                                 value.includes(":") ? (
@@ -336,7 +335,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
       </Box>
       {/* Right Side (AI-Generated Response) */}
       <Box sx={{ p: 2, pt: 0.1, mb: 3, boxShadow: 0, width: "50%" }}>
-        {summaryAndTemplate ? (
+        {response ? (
           <Paper sx={{ p: 2, mb: 2, borderRadius: 2, boxShadow: 2 }}>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
               Specialist Summary
@@ -362,7 +361,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
             <Skeleton variant="text" width="60%" height={20} sx={{ mb: 2}} />
           </>
         )}
-        {specialistAIResponse ? (
+        {response && response.specialistAIResponse ? (
           <>
             <Paper
               sx={{
@@ -401,12 +400,12 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                   }}
                 >
                   {renderWithCitations(displayedText, {
-                    citations: specialistAIResponse.citations,
+                    citations: response.specialistAIResponse.citations,
                   })}
                 </ReactMarkdown>
               </Typography>
             </Paper>
-            {specialistAIResponse && typedCitations.length > 0 && (
+            {response.specialistAIResponse && typedCitations.length > 0 && (
               <Paper sx={{ p: 2, mb: 2, borderRadius: 2, boxShadow: 2 }}>
                 <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
                   Quick References
