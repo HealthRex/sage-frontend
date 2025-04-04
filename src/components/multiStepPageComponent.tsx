@@ -17,7 +17,6 @@ export default function MultiStepPageComponent() {
   const [activeStep, setActiveStep] = useState<number>(0);
   const [clinicalQuestion, setClinicalQuestion] = useState<string>("");
   const [clinicalNotes, setClinicalNotes] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
   const [questionError, setQuestionError] = useState("");
   const [notesError, setNotesError] = useState("");
@@ -66,20 +65,19 @@ export default function MultiStepPageComponent() {
   
         // Process full SSE event blocks
         const events = partialChunk.split("\n\n"); // SSE events are often separated by double newlines
-        for (let event of events) {
+        for (const event of events) {
           const lines = event.split("\n");
-          for (let line of lines) {
+          for (const line of lines) {
             if (line.startsWith("data:")) {
               const jsonStr = line.slice(5).trim(); // Remove "data:" prefix
               try {
                 const parsed = JSON.parse(jsonStr);
-                console.log("Parsed SSE data:", parsed);
                 setApiResponse((prev) => ({
                   ...(prev || {}),
                   ...parsed,
                 }));
               } catch (err) {
-                console.warn("Invalid JSON in data:", jsonStr);
+                console.warn("Invalid JSON in data:", err);
               }
             }
           }

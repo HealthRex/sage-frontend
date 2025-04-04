@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Typography,
@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
-import Divider from '@mui/material/Divider';
+import Divider from "@mui/material/Divider";
 
 interface ApiResponse {
   specialistSummary: string;
@@ -31,122 +31,91 @@ interface PhaseContent {
   steps: string[];
 }
 
-
 const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
   const [phase, setPhase] = useState<1 | 2 | 3>(1);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [showPhase1, setShowPhase1] = useState<boolean>(true);
   const [showPhase2, setShowPhase2] = useState<boolean>(false);
   const [showPhase3, setShowPhase3] = useState<boolean>(false);
-  const [displayedText, setDisplayedText] = useState<string>("");
   const [displayedTemplate, setDisplayedTemplate] = useState<object[]>([]);
   const [typedSpecialistSummary, setTypedSpecialistSummary] =
     useState<string>("");
-  const [typedCitations, setTypedCitations] = useState<string[]>([]);
+
+  const [index, setIndex] = useState(0);
+
+  const summaryText = response?.specialistSummary || "";
+  const words = summaryText.split(" ");
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    if (!summaryText) return;
 
-    if (phase === 1 || phase === 2 || phase === 3) {
-      if (step < 3) {
-        timer = setTimeout(() => {
-          setStep((prevStep) => (prevStep + 1) as 1 | 2 | 3);
-        }, 2500);
-      } else {
-        if (phase === 1) {
-          timer = setTimeout(() => {
-            setPhase(2);
-            setStep(1);
-            setShowPhase1(false);
-            setShowPhase2(true);
-          }, 3500);
-        } else if (phase === 2) {
-          timer = setTimeout(() => {
-            setPhase(3);
-            setStep(1);
-            setShowPhase2(false);
-            setShowPhase3(true);
-          }, 3500);
-        }
-      }
+    if (index < words.length) {
+      const timeout = setTimeout(() => {
+        setTypedSpecialistSummary((prev) =>
+          prev.length === 0 ? words[index] : `${prev} ${words[index]}`
+        );
+        setIndex((prev) => prev + 1);
+      }, 60);
+      return () => clearTimeout(timeout);
     }
+  }, [index, summaryText, words]);
 
-    return () => clearTimeout(timer);
-  }, [phase, step]);
+  const displayedKeys = new Set<string>(); // Track already displayed items globally
+  const hasLoadedTemplate = useRef(false); // Track if the template has already been loaded
 
   useEffect(() => {
-    if (response && response.specialistAIResponse?.summaryResponse) {
-      const words = response.specialistAIResponse.summaryResponse.split(" "); // Split text into words
-      let currentIndex = 0;
+    if (response?.populatedTemplate && !hasLoadedTemplate.current) {
+      hasLoadedTemplate.current = true; // Mark as loaded to prevent re-running
 
-      const interval = setInterval(() => {
-        if (currentIndex < words.length) {
-          setDisplayedText((prev) =>
-            prev ? prev + " " + words[currentIndex] : words[currentIndex]
-          ); // Append word by word
-          currentIndex++;
-        } else {
-          clearInterval(interval);
-
-          // Move startTypingCitations function here
-          if (response.specialistAIResponse?.citations) {
-            const citations = response.specialistAIResponse.citations;
-            let citationIndex = 0;
-
-            const citationInterval = setInterval(() => {
-              if (citationIndex < citations.length) {
-                setTypedCitations((prev) => [...prev, citations[citationIndex]]);
-                citationIndex++;
-              } else {
-                clearInterval(citationInterval);
-              }
-            }, 400); // Adjust delay for smoother citation-by-citation effect
+      const loadTemplateData = async () => {
+        for (const item of response.populatedTemplate) {
+          const itemKey = JSON.stringify(item); // Serialize item to compare
+          if (!displayedKeys.has(itemKey)) {
+            displayedKeys.add(itemKey); // Mark item as displayed
+            await new Promise((resolve) => setTimeout(resolve, 400)); // Delay for smooth loading
+            setDisplayedTemplate((prev) => [...prev, item]);
           }
         }
-      }, 60); // Adjust delay for faster word-by-word effect
+      };
 
-      return () => clearInterval(interval);
-    }
-  }, [response?.specialistAIResponse?.summaryResponse, response?.specialistAIResponse?.citations]);
-
-  useEffect(() => {
-    if (response && response.specialistSummary) {
-      const text = response.specialistSummary;
-      let currentIndex = 0;
-
-      const interval = setInterval(() => {
-        if (currentIndex < text.length) {
-          setTypedSpecialistSummary((prev) => prev + text[currentIndex]);
-          currentIndex++;
-        } else {
-          clearInterval(interval);
-        }
-      }, 3); // Adjust delay for smoother character-by-character effect
-
-      return () => clearInterval(interval);
-    }
-  }, [response?.specialistSummary]);
-
-  useEffect(() => {
-    if (response && response.populatedTemplate) {
-      const templateItems = response.populatedTemplate;
-      let currentIndex = 0;
-
-      const interval = setInterval(() => {
-        if (currentIndex < templateItems.length) {
-          setDisplayedTemplate((prev) => [
-            ...prev,
-            templateItems[currentIndex],
-          ]);
-          currentIndex++;
-        } else {
-          clearInterval(interval);
-        }
-      }, 400); // Adjust delay for smoother item-by-item effect
-
-      return () => clearInterval(interval);
+      loadTemplateData();
     }
   }, [response?.populatedTemplate]);
+
+  const [typedText, setTypedText] = useState<string>("");
+  const [typedCitations, setTypedCitations] = useState<string[]>([]);
+  const [wordIndex, setWordIndex] = useState(0);
+  const [citationIndex, setCitationIndex] = useState(0);
+
+  const summaryWords =
+    response?.specialistAIResponse?.summaryResponse?.split(" ") || "";
+  const citations = response?.specialistAIResponse?.citations || [];
+
+  // Typing summaryResponse word-by-word
+  useEffect(() => {
+    if (wordIndex < summaryWords.length) {
+      const timeout = setTimeout(() => {
+        setTypedText((prev) =>
+          prev.length === 0
+            ? summaryWords[wordIndex]
+            : `${prev} ${summaryWords[wordIndex]}`
+        );
+        setWordIndex((prev) => prev + 1);
+      }, 60);
+      return () => clearTimeout(timeout);
+    }
+  }, [wordIndex, summaryWords, 60]);
+
+  // Start typing citations after summary is fully typed
+  useEffect(() => {
+    if (wordIndex === summaryWords.length && citationIndex < citations.length) {
+      const timeout = setTimeout(() => {
+        setTypedCitations((prev) => [...prev, citations[citationIndex]]);
+        setCitationIndex((prev) => prev + 1);
+      }, 60 * 5); // a bit slower for links
+      return () => clearTimeout(timeout);
+    }
+  }, [wordIndex, citationIndex, citations, summaryWords.length, 60]);
 
   const getPhaseContent = (phaseNumber: 1 | 2 | 3): PhaseContent => {
     switch (phaseNumber) {
@@ -262,8 +231,9 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
                                 <span
                                   style={{
                                     margin: 0,
-                                    paddingLeft: "1.5rem",
                                     listStyleType: "none",
+                                    display: "flex",
+                                    flexDirection: "column",
                                   }}
                                 >
                                   {value.split("\n").map((line, i) => (
@@ -342,10 +312,10 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
             </Typography>
             <Typography
               variant="body1"
-              component="div"
+              component="pre"
               sx={{
-                mb: 2,
-                whiteSpace: "pre-wrap", // Preserve line breaks
+                whiteSpace: "pre-wrap",
+                position: "relative",
               }}
             >
               {typedSpecialistSummary}
@@ -358,7 +328,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
             <Skeleton variant="text" width="90%" height={20} sx={{ mb: 1 }} />
             <Skeleton variant="text" width="90%" height={20} sx={{ mb: 1 }} />
             <Skeleton variant="text" width="90%" height={20} sx={{ mb: 1 }} />
-            <Skeleton variant="text" width="60%" height={20} sx={{ mb: 2}} />
+            <Skeleton variant="text" width="60%" height={20} sx={{ mb: 2 }} />
           </>
         )}
         {response && response.specialistAIResponse ? (
@@ -369,8 +339,8 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
                 borderRadius: 2,
                 boxShadow: 0,
                 transition: "all 0.5s ease-in-out", // Smooth transition for height and opacity
-                opacity: displayedText ? 1 : 0, // Fade in when text is displayed
-                height: displayedText ? "auto" : 0, // Adjust height dynamically
+                opacity: typedText ? 1 : 0, // Fade in when text is displayed
+                height: typedText ? "auto" : 0, // Adjust height dynamically
                 overflow: "hidden", // Prevent content overflow during transition
               }}
             >
@@ -399,7 +369,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
                     ),
                   }}
                 >
-                  {renderWithCitations(displayedText, {
+                  {renderWithCitations(typedText, {
                     citations: response.specialistAIResponse.citations,
                   })}
                 </ReactMarkdown>
@@ -411,7 +381,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
                   Quick References
                 </Typography>
                 <List sx={{ listStyleType: "disc", pl: 2 }}>
-                  {typedCitations.map((line, index) => (
+                  {typedCitations.map((line, index) =>
                     line ? ( // Ensure line is not undefined or null
                       <Link key={index} href={line}>
                         <ListItem
@@ -422,7 +392,9 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
                             color: "blue",
                             textDecoration: "underline",
                             opacity: 0,
-                            animation: `fadeIn 0.5s ease-in ${index * 0.2}s forwards`, // Smooth fade-in for each citation
+                            animation: `fadeIn 0.5s ease-in ${
+                              index * 0.2
+                            }s forwards`, // Smooth fade-in for each citation
                             "@keyframes fadeIn": {
                               from: { opacity: 0 },
                               to: { opacity: 1 },
@@ -433,18 +405,18 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
                         </ListItem>
                       </Link>
                     ) : null // Skip rendering if line is invalid
-                  ))}
+                  )}
                 </List>
               </Paper>
             )}
           </>
         ) : (
           <>
-            <Divider sx={{ mb: 2, mt: 4}} />
+            <Divider sx={{ mb: 2, mt: 4 }} />
             <Skeleton variant="text" width="50%" height={40} sx={{ mb: 2 }} />
             <Skeleton variant="text" width="90%" height={20} sx={{ mb: 1 }} />
-            <Skeleton variant="text" width="80%" height={20} sx={{ mb: 2}} />
-            <Divider sx={{ mb: 2}} />
+            <Skeleton variant="text" width="80%" height={20} sx={{ mb: 2 }} />
+            <Divider sx={{ mb: 2 }} />
             <Skeleton variant="text" width="50%" height={40} sx={{ mb: 2 }} />
             <Skeleton variant="text" width="90%" height={20} sx={{ mb: 1 }} />
             <Skeleton variant="text" width="90%" height={20} sx={{ mb: 1 }} />
