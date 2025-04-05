@@ -42,9 +42,39 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
     useState<string>("");
 
   const [index, setIndex] = useState(0);
-
   const summaryText = response?.specialistSummary || "";
   const words = summaryText.split(" ");
+
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (phase === 1 || phase === 2 || phase === 3) {
+      if (step < 3) {
+        timer = setTimeout(() => {
+          setStep((prevStep) => (prevStep + 1) as 1 | 2 | 3);
+        }, 2500);
+      } else {
+        if (phase === 1) {
+          timer = setTimeout(() => {
+            setPhase(2);
+            setStep(1);
+            setShowPhase1(false);
+            setShowPhase2(true);
+          }, 3500);
+        } else if (phase === 2) {
+          timer = setTimeout(() => {
+            setPhase(3);
+            setStep(1);
+            setShowPhase2(false);
+            setShowPhase3(true);
+          }, 3500);
+        }
+      }
+    }
+
+    return () => clearTimeout(timer);
+  }, [phase, step]);
 
   useEffect(() => {
     if (!summaryText) return;
@@ -104,7 +134,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
       }, 60);
       return () => clearTimeout(timeout);
     }
-  }, [wordIndex, summaryWords, 60]);
+  }, [wordIndex, summaryWords]);
 
   // Start typing citations after summary is fully typed
   useEffect(() => {
@@ -115,7 +145,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
       }, 60 * 5); // a bit slower for links
       return () => clearTimeout(timeout);
     }
-  }, [wordIndex, citationIndex, citations, summaryWords.length, 60]);
+  }, [wordIndex, citationIndex, citations, summaryWords.length]);
 
   const getPhaseContent = (phaseNumber: 1 | 2 | 3): PhaseContent => {
     switch (phaseNumber) {
@@ -234,6 +264,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
                                     listStyleType: "none",
                                     display: "flex",
                                     flexDirection: "column",
+                                    gap: "0.5rem",
                                   }}
                                 >
                                   {value.split("\n").map((line, i) => (
