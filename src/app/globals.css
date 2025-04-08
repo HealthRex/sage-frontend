@@ -53,7 +53,17 @@ a {
   margin: 5px 0px 0px 15px;
 }
 
-
+@keyframes fadeGlow {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
 
 
 @media (prefers-color-scheme: dark) {

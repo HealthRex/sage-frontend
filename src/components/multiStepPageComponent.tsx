@@ -10,8 +10,6 @@ import {
 } from "@mui/material";
 import ClinicalQuestionPage from "./clinicalQuestionPage";
 import ConsultPage from "./consultPage";
-import LoadingPage from "./loadingPage";
-import { postData } from "@/utils/api";
 
 const steps = ["Clinical Question", "Review"];
 
@@ -19,7 +17,6 @@ export default function MultiStepPageComponent() {
   const [activeStep, setActiveStep] = useState<number>(0);
   const [clinicalQuestion, setClinicalQuestion] = useState<string>("");
   const [clinicalNotes, setClinicalNotes] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
   const [questionError, setQuestionError] = useState("");
   const [notesError, setNotesError] = useState("");
@@ -34,23 +31,64 @@ export default function MultiStepPageComponent() {
   }
 
 
+
   async function handleSubmit() {
-    setIsLoading(true);
-    // setClinicalQuestion(clinicalQuestion);
+    setApiResponse(null);
+  
     try {
       const requestBody = {
         question: clinicalQuestion,
         clinicalNotes: clinicalNotes,
       };
-      const response = await postData<ApiResponse | null>(
-        "https://assist-pc-backend.onrender.com/referral",
-        requestBody
-      );
-      setApiResponse(response);
+  
+      const response = await fetch("https://assist-pc-backend.onrender.com/referral-streamed", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+  
+      if (!response.ok || !response.body) {
+        throw new Error("Network response was not ok or body is null");
+      }
+  
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let partialChunk = "";
+  
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+  
+        partialChunk += decoder.decode(value, { stream: true });
+  
+        // Process full SSE event blocks
+        const events = partialChunk.split("\n\n"); // SSE events are often separated by double newlines
+        for (const event of events) {
+          const lines = event.split("\n");
+          for (const line of lines) {
+            if (line.startsWith("data:")) {
+              const jsonStr = line.slice(5).trim(); // Remove "data:" prefix
+              try {
+                const parsed = JSON.parse(jsonStr);
+                setApiResponse((prev) => ({
+                  ...(prev || {}),
+                  ...parsed,
+                }));
+              } catch (err) {
+                console.warn("Invalid JSON in data:", err);
+              }
+            }
+          }
+        }
+  
+        // Reset chunk for next batch
+        partialChunk = "";
+      }
+  
     } catch (error) {
-      console.error("Error submitting data:", error);
-    } finally {
-      setIsLoading(false);
+      console.error("Error during streaming:", error);
     }
   }
 
@@ -95,10 +133,8 @@ export default function MultiStepPageComponent() {
             setClinicalQuestion={setClinicalQuestion}
             setClinicalNotes={setClinicalNotes}
           />
-        ) : isLoading ? (
-          <LoadingPage />
         ) : (
-          <ConsultPage response={apiResponse} />
+          <ConsultPage response={apiResponse} clinicalQuestion={clinicalQuestion} />
         )}
       </Box>
 
