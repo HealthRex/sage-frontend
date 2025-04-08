@@ -23,7 +23,7 @@ export default function MultiStepPageComponent() {
 
   interface ApiResponse {
     specialistSummary: string;
-    populatedTemplate: object[];
+    populatedTemplate: Array<{ field: string; value: string }>
     specialistAIResponse: {
       summaryResponse: string;
       citations: string[];
