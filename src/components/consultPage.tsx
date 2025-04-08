@@ -195,8 +195,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
     );
   };
 
-  console.log("displayedTemplate:", displayedTemplate);
-
   return (
     <Box
       sx={{
