@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -16,7 +16,7 @@ import Divider from "@mui/material/Divider";
 
 interface ApiResponse {
   specialistSummary: string;
-  populatedTemplate: object[];
+  populatedTemplate: Array<{ field: string; value: string }>;
   specialistAIResponse: {
     summaryResponse: string;
     citations: string[];
@@ -41,12 +41,22 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   const [showPhase1, setShowPhase1] = useState<boolean>(true);
   const [showPhase2, setShowPhase2] = useState<boolean>(false);
   const [showPhase3, setShowPhase3] = useState<boolean>(false);
-  const [displayedTemplate, setDisplayedTemplate] = useState<object[]>([]);
-  const [typedSpecialistSummary, setTypedSpecialistSummary] = useState<string>("");
+  const [displayedTemplate, setDisplayedTemplate] = useState<
+    Array<{ field: string; value: string }>
+  >([]);
+  const [typedSpecialistSummary, setTypedSpecialistSummary] =
+    useState<string>("");
   const [index, setIndex] = useState(0);
   const summaryText = response?.specialistSummary || "";
   const words = summaryText.split(" ");
-
+  const [typedText, setTypedText] = useState<string>("");
+  const [typedCitations, setTypedCitations] = useState<string[]>([]);
+  const [wordIndex, setWordIndex] = useState(0);
+  const [citationIndex, setCitationIndex] = useState(0);
+  const summaryWords =
+    response?.specialistAIResponse?.summaryResponse?.split(" ") || "";
+  const citations = response?.specialistAIResponse?.citations || [];
+  const [showGeneratingText, setShowGeneratingText] = useState(false);
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
@@ -78,6 +88,12 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   }, [phase, step]);
 
   useEffect(() => {
+    if (response?.populatedTemplate) {
+      setDisplayedTemplate(response.populatedTemplate);
+    }
+  }, [response?.populatedTemplate]);
+
+  useEffect(() => {
     if (!summaryText) return;
 
     if (index < words.length) {
@@ -90,37 +106,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
       return () => clearTimeout(timeout);
     }
   }, [index, summaryText, words]);
-
-  const displayedKeys = new Set<string>(); // Track already displayed items globally
-  const hasLoadedTemplate = useRef(false); // Track if the template has already been loaded
-
-  useEffect(() => {
-    if (response?.populatedTemplate && !hasLoadedTemplate.current) {
-      hasLoadedTemplate.current = true; // Mark as loaded to prevent re-running
-
-      const loadTemplateData = async () => {
-        for (const item of response.populatedTemplate) {
-          const itemKey = JSON.stringify(item); // Serialize item to compare
-          if (!displayedKeys.has(itemKey)) {
-            displayedKeys.add(itemKey); // Mark item as displayed
-            await new Promise((resolve) => setTimeout(resolve, 400)); // Delay for smooth loading
-            setDisplayedTemplate((prev) => [...prev, item]);
-          }
-        }
-      };
-
-      loadTemplateData();
-    }
-  }, [response?.populatedTemplate]);
-
-  const [typedText, setTypedText] = useState<string>("");
-  const [typedCitations, setTypedCitations] = useState<string[]>([]);
-  const [wordIndex, setWordIndex] = useState(0);
-  const [citationIndex, setCitationIndex] = useState(0);
-
-  const summaryWords =
-    response?.specialistAIResponse?.summaryResponse?.split(" ") || "";
-  const citations = response?.specialistAIResponse?.citations || [];
 
   // Typing summaryResponse word-by-word
   useEffect(() => {
@@ -147,6 +132,17 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
       return () => clearTimeout(timeout);
     }
   }, [wordIndex, citationIndex, citations, summaryWords.length]);
+
+  useEffect(() => {
+    if (response) {
+      const timer = setTimeout(() => {
+        setShowGeneratingText(true);
+      }, 3500); // Show after 5 seconds
+      return () => clearTimeout(timer); // Cleanup timeout on unmount or response change
+    } else {
+      setShowGeneratingText(false); // Reset if no response
+    }
+  }, [response]);
 
   const getPhaseContent = (phaseNumber: 1 | 2 | 3): PhaseContent => {
     switch (phaseNumber) {
@@ -181,7 +177,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
         return { heading: "", steps: [] };
     }
   };
-
   const currentPhaseContent: PhaseContent = getPhaseContent(phase);
 
   const renderWithCitations = (
@@ -199,6 +194,8 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
       }
     );
   };
+
+  console.log("displayedTemplate:", displayedTemplate);
 
   return (
     <Box
@@ -228,73 +225,60 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
               <Paper elevation={3} sx={{ p: 1 }}>
                 <List>
                   {displayedTemplate.map((item, index) => (
-                    <ListItem
-                      key={index}
-                      divider
-                      sx={{
-                        opacity: 0,
-                        animation: `fadeIn 0.5s ease-out ${
-                          index * 0.15
-                        }s forwards`, // Add delay for each item
-                        "@keyframes fadeIn": {
-                          from: { opacity: 0 },
-                          to: { opacity: 1 },
-                        },
-                      }}
-                    >
-                      {item && // Ensure item is not null or undefined
-                        Object.entries(item).map(([key, value]) => (
-                          <ListItemText
-                            key={key}
-                            primary={
-                              <span
-                                style={{
-                                  display: "block",
-                                  marginBottom: "0.5rem",
-                                }}
+                    <React.Fragment key={index}>
+                      <ListItem
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "flex-start",
+                          opacity: 0,
+                          transform: "translateY(10px)",
+                          animation: `fadeIn 0.5s ease-in ${
+                            index * 0.2
+                          }s forwards`,
+                          "@keyframes fadeIn": {
+                            from: { opacity: 0, transform: "translateY(10px)" },
+                            to: { opacity: 1, transform: "translateY(0)" },
+                          },
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle1"
+                          sx={{ fontWeight: "bold" }}
+                        >
+                          {item.field}:
+                        </Typography>
+                        {typeof item.value === "string" &&
+                        item.value.includes("\n") ? (
+                          <Box component="ol" sx={{ pl: 2, color: "grey.700", paddingLeft: 0,
+                            display: "flex",
+                            flexDirection: "column",
+                            listStyleType: "none",
+                            gap: "0.5rem", }}>
+                            {item.value.split("\n").map((line, idx) => (
+                              <Typography
+                                key={idx}
+                                component="li"
+                                variant="body2"
                               >
-                                {key}
-                              </span>
-                            }
-                            secondary={
-                              typeof value === "string" &&
-                              value.includes("\n") ? (
-                                <span
-                                  style={{
-                                    margin: 0,
-                                    listStyleType: "none",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: "0.5rem",
-                                  }}
-                                >
-                                  {value.split("\n").map((line, i) => (
-                                    <span key={i}>
-                                      {line.includes(":") ? (
-                                        <>
-                                          <strong>{line.split(":")[0]}</strong>
-                                          {line.slice(line.indexOf(":"))}
-                                        </>
-                                      ) : (
-                                        line
-                                      )}
-                                    </span>
-                                  ))}
-                                </span>
-                              ) : value &&
-                                typeof value === "string" &&
-                                value.includes(":") ? (
-                                <>
-                                  <strong>{value.split(":")[0]}</strong>
-                                  {value.slice(value.indexOf(":"))}
-                                </>
-                              ) : (
-                                value || "N/A"
-                              )
-                            }
-                          />
-                        ))}
-                    </ListItem>
+                                {line.trim()}
+                              </Typography>
+                            ))}
+                          </Box>
+                        ) : (
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "grey.700" }}
+                          >
+                            {item.value || "N/A"}
+                          </Typography>
+                        )}
+                      </ListItem>
+                      {index < displayedTemplate.length - 1 && (
+                        <Divider sx={{ my: 1 }} />
+                      )}{" "}
+                      {/* Add Divider except after the last item */}
+                    </React.Fragment>
                   ))}
                 </List>
               </Paper>
@@ -348,7 +332,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
             <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
               Specialist Summary
             </Typography>
-            <Typography
+            {typedSpecialistSummary ? (<Typography
               variant="body1"
               component="pre"
               sx={{
@@ -357,7 +341,15 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
               }}
             >
               {typedSpecialistSummary}
-            </Typography>
+            </Typography>) :
+            <>
+            <Skeleton variant="text" width="90%" height={20} sx={{ mb: 1 }} />
+            <Skeleton variant="text" width="90%" height={20} sx={{ mb: 1 }} />
+            <Skeleton variant="text" width="90%" height={20} sx={{ mb: 1 }} />
+            <Skeleton variant="text" width="90%" height={20} sx={{ mb: 1 }} />
+            </>
+            }
+            
           </Paper>
         ) : (
           <>
@@ -451,7 +443,26 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
           </>
         ) : (
           <>
-            <Divider sx={{ mb: 2, mt: 4 }} />
+              {response ? (
+          <>
+           <Divider sx={{ mb: 2, mt: 4 }} />
+            {showGeneratingText && (
+              <Typography
+                variant="body1"
+                sx={{
+                  mb: 2,
+                  animation: "fadeGlow 2s infinite",
+                }}
+              >
+                Generating evidence-based recommendations...
+              </Typography>
+            )}
+          </>
+        ) : (
+          <>
+           {null}
+          </>
+        )}
             <Skeleton variant="text" width="50%" height={40} sx={{ mb: 2 }} />
             <Skeleton variant="text" width="90%" height={20} sx={{ mb: 1 }} />
             <Skeleton variant="text" width="80%" height={20} sx={{ mb: 2 }} />
