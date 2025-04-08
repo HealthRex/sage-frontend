@@ -25,26 +25,27 @@ interface ApiResponse {
 
 interface ConsultPageProps {
   response: ApiResponse | null;
+  clinicalQuestion: string;
 }
 interface PhaseContent {
   heading: string;
   steps: string[];
 }
 
-const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
+const ConsultPage: React.FC<ConsultPageProps> = ({
+  response,
+  clinicalQuestion,
+}) => {
   const [phase, setPhase] = useState<1 | 2 | 3>(1);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [showPhase1, setShowPhase1] = useState<boolean>(true);
   const [showPhase2, setShowPhase2] = useState<boolean>(false);
   const [showPhase3, setShowPhase3] = useState<boolean>(false);
   const [displayedTemplate, setDisplayedTemplate] = useState<object[]>([]);
-  const [typedSpecialistSummary, setTypedSpecialistSummary] =
-    useState<string>("");
-
+  const [typedSpecialistSummary, setTypedSpecialistSummary] = useState<string>("");
   const [index, setIndex] = useState(0);
   const summaryText = response?.specialistSummary || "";
   const words = summaryText.split(" ");
-
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -131,7 +132,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
             : `${prev} ${summaryWords[wordIndex]}`
         );
         setWordIndex((prev) => prev + 1);
-      }, 60);
+      }, 40);
       return () => clearTimeout(timeout);
     }
   }, [wordIndex, summaryWords]);
@@ -339,6 +340,12 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
         {response ? (
           <Paper sx={{ p: 2, mb: 2, borderRadius: 2, boxShadow: 2 }}>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
+              Clinical Question
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              {clinicalQuestion}
+            </Typography>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
               Specialist Summary
             </Typography>
             <Typography
@@ -412,30 +419,31 @@ const ConsultPage: React.FC<ConsultPageProps> = ({ response }) => {
                   Quick References
                 </Typography>
                 <List sx={{ listStyleType: "disc", pl: 2 }}>
-                  {typedCitations.map((line, index) =>
-                    line ? ( // Ensure line is not undefined or null
-                      <Link key={index} href={line}>
-                        <ListItem
-                          sx={{
-                            display: "list-item",
-                            p: 0.3,
-                            pl: 0,
-                            color: "blue",
-                            textDecoration: "underline",
-                            opacity: 0,
-                            animation: `fadeIn 0.5s ease-in ${
-                              index * 0.2
-                            }s forwards`, // Smooth fade-in for each citation
-                            "@keyframes fadeIn": {
-                              from: { opacity: 0 },
-                              to: { opacity: 1 },
-                            },
-                          }}
-                        >
-                          <ListItemText primary={line} />
-                        </ListItem>
-                      </Link>
-                    ) : null // Skip rendering if line is invalid
+                  {typedCitations.map(
+                    (line, index) =>
+                      line ? ( // Ensure line is not undefined or null
+                        <Link key={index} href={line}>
+                          <ListItem
+                            sx={{
+                              display: "list-item",
+                              p: 0.3,
+                              pl: 0,
+                              color: "blue",
+                              textDecoration: "underline",
+                              opacity: 0,
+                              animation: `fadeIn 0.5s ease-in ${
+                                index * 0.2
+                              }s forwards`, // Smooth fade-in for each citation
+                              "@keyframes fadeIn": {
+                                from: { opacity: 0 },
+                                to: { opacity: 1 },
+                              },
+                            }}
+                          >
+                            <ListItemText primary={line} />
+                          </ListItem>
+                        </Link>
+                      ) : null // Skip rendering if line is invalid
                   )}
                 </List>
               </Paper>

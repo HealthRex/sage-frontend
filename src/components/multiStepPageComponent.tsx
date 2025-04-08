@@ -41,7 +41,7 @@ export default function MultiStepPageComponent() {
         clinicalNotes: clinicalNotes,
       };
   
-      const response = await fetch("http://localhost:3003/referral-streamed", {
+      const response = await fetch("https://assist-pc-backend.onrender.com/referral-streamed", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -134,7 +134,7 @@ export default function MultiStepPageComponent() {
             setClinicalNotes={setClinicalNotes}
           />
         ) : (
-          <ConsultPage response={apiResponse} />
+          <ConsultPage response={apiResponse} clinicalQuestion={clinicalQuestion} />
         )}
       </Box>
 
