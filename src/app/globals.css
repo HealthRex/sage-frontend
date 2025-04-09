@@ -53,6 +53,15 @@ a {
   margin: 5px 0px 0px 15px;
 }
 
+ol{
+  margin: 10px 0 0 14px;
+  color: #525252;
+}
+
+ol li ul{
+  margin: 0 0 0 14px;
+}
+
 @keyframes fadeGlow {
   0% {
     opacity: 0.5;

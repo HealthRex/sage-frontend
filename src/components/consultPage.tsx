@@ -248,34 +248,50 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                         </Typography>
                         {typeof item.value === "string" &&
                         item.value.includes("\n") ? (
-                          <Box component="ol" sx={{ pl: 2, color: "grey.700", paddingLeft: 0,
-                            display: "flex",
-                            flexDirection: "column",
-                            listStyleType: "none",
-                            gap: "0.5rem", }}>
-                            {item.value.split("\n").map((line, idx) => (
-                              <Typography
-                                key={idx}
-                                component="li"
-                                variant="body2"
+                          <ReactMarkdown
+                          components={{
+                            div: ({ children }) => (
+                              <Box
+                                component="p"
+                                sx={{
+                                  pl: 2,
+                                  color: "grey.700",
+                                  paddingLeft: 0,
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  listStyleType: "none",
+                                  gap: "0.5rem",
+                                }}
                               >
-                                {line.trim()}
+                                {children}
+                              </Box>
+                            ),
+                            p: ({ children }) => (
+                              <Typography component="span" variant="body2">
+                                {children}
                               </Typography>
-                            ))}
-                          </Box>
-                        ) : (
-                          <Typography
-                            variant="body2"
-                            sx={{ color: "grey.700" }}
-                          >
-                            {item.value || "N/A"}
-                          </Typography>
+                            ),
+                          }}
+                        >
+                          {item.value}
+                        </ReactMarkdown>
+                      ) : (
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => (
+                              <Typography variant="body2" sx={{ color: "grey.800" }}>
+                                {children}
+                              </Typography>
+                            ),
+                          }}
+                        >
+                          {item.value || "N/A"}
+                        </ReactMarkdown>
                         )}
                       </ListItem>
                       {index < displayedTemplate.length - 1 && (
                         <Divider sx={{ my: 1 }} />
                       )}{" "}
-                      {/* Add Divider except after the last item */}
                     </React.Fragment>
                   ))}
                 </List>
