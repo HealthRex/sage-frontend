@@ -16,6 +16,7 @@
     "@mui/material": "^6.4.2",
     "@mui/material-nextjs": "^6.4.2",
     "@mui/styles": "^6.4.3",
+    "@server-sent-stream/web": "^1.0.3",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

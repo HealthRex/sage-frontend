@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import ClinicalQuestionPage from "./clinicalQuestionPage";
 import ConsultPage from "./consultPage";
+import EventSourceStream from '@server-sent-stream/web';
 
 const steps = ["Clinical Question", "Review"];
 
@@ -53,38 +54,28 @@ export default function MultiStepPageComponent() {
         throw new Error("Network response was not ok or body is null");
       }
   
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let partialChunk = "";
-  
+      const stream = response.body;
+      const decoder = new EventSourceStream();
+      stream.pipeThrough(decoder);
+
+      // Read from the EventSourceStream
+      const reader = decoder.readable.getReader();
+
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done || value.data == null) break;  // TODO is value.data NULL a bug? Could it happen?
   
-        partialChunk += decoder.decode(value, { stream: true });
-  
-        // Process full SSE event blocks
-        const events = partialChunk.split("\n\n"); // SSE events are often separated by double newlines
-        for (const event of events) {
-          const lines = event.split("\n");
-          for (const line of lines) {
-            if (line.startsWith("data:")) {
-              const jsonStr = line.slice(5).trim(); // Remove "data:" prefix
-              try {
-                const parsed = JSON.parse(jsonStr);
-                setApiResponse((prev) => ({
-                  ...(prev || {}),
-                  ...parsed,
-                }));
-              } catch (err) {
-                console.warn("Invalid JSON in data:", err);
-              }
-            }
-          }
+        const jsonStr = value.data;
+        try {
+          const parsed = JSON.parse(jsonStr);
+          setApiResponse((prev) => ({
+            ...(prev || {}),
+            ...parsed,
+          }));
+        } catch (err) {
+          console.warn("Invalid JSON in data:", err);
+          console.warn("Invalid JSON: ", jsonStr);
         }
-  
-        // Reset chunk for next batch
-        partialChunk = "";
       }
   
     } catch (error) {
