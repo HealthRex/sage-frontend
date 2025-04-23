@@ -8,6 +8,7 @@ import {
   FormHelperText,
 } from "@mui/material";
 import React from "react";
+import Footer from "./footer";
 
 
 
@@ -83,6 +84,8 @@ export default function ClinicalQuestionPage({
           {notesError}
         </FormHelperText>
       </FormControl>
+    <Footer />
+
     </Box>
   );
 }

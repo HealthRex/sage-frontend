@@ -16,11 +16,12 @@ export default function Header() {
         color: "#000",
         boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
         zIndex: 1100, // Ensure it stays on top
+        height: "60px", // Set a fixed height
       }}
     >
       <Toolbar disableGutters>
         <Container maxWidth="lg" sx={{ display: "flex", alignItems: "center" }}>
-          <Image src={logo} alt="Stanford Medicine Logo" width={300} height={80} />
+          <Image src={logo} alt="Stanford Medicine Logo" width={250} height={70} />
         </Container>
       </Toolbar>
     </AppBar>

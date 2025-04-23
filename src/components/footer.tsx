@@ -7,10 +7,13 @@ export default function Footer() {
     return (
       <footer
         style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          width: "100%",
           backgroundColor: "#182635",
           padding: "20px",
           textAlign: "center",
-          borderTop: "1px solid #E0E0E0",
           color: "white",
         }}
       >

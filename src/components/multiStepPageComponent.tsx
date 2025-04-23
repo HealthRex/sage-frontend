@@ -23,10 +23,10 @@ export default function MultiStepPageComponent() {
 
   interface ApiResponse {
     specialistSummary: string;
-    populatedTemplate: Array<{ field: string; value: string }>
+    populatedTemplate: Array<{ field: string; value: string }>;
     specialistAIResponse: {
       summaryResponse: string;
-      citations: string[];
+      citations:  Array<{ name: string; url: string }>;
     };
   }
 
@@ -41,7 +41,7 @@ export default function MultiStepPageComponent() {
         clinicalNotes: clinicalNotes,
       };
   
-      const response = await fetch("https://assist-pc-backend.onrender.com/referral-streamed", {
+      const response = await fetch("https://assist-pc-backend-dev.onrender.com/referral-streamed", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -82,8 +82,6 @@ export default function MultiStepPageComponent() {
             }
           }
         }
-  
-        // Reset chunk for next batch
         partialChunk = "";
       }
   
@@ -114,8 +112,8 @@ export default function MultiStepPageComponent() {
 
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
+    <Box sx={{ p: 2, pb:0, pt:1}}>
+      <Stepper activeStep={activeStep} sx={{ mb: "10px" }}>
         {steps.map((label, index) => (
           <Step key={index}>
             <StepLabel>{label}</StepLabel>
@@ -134,16 +132,14 @@ export default function MultiStepPageComponent() {
             setClinicalNotes={setClinicalNotes}
           />
         ) : (
-          <ConsultPage response={apiResponse} clinicalQuestion={clinicalQuestion} />
+          <ConsultPage response={apiResponse} clinicalQuestion={clinicalQuestion} clinicalNotes= {clinicalNotes}/>
         )}
       </Box>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
         <Box sx={{ flexGrow: 1 }} />
           {activeStep === steps.length - 1 ? (
-            <Button variant="contained">
-              Submit
-            </Button>
+           null
           ) : (
             <Button variant="contained" onClick={handleNext}>
               Generate Report
