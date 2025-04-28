@@ -50,7 +50,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   onSubmit,
   clinicalNotes,
 }) => {
-  console.log("Response:", response);
   const [phase, setPhase] = useState<1 | 2 | 3>(1);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [showPhase1, setShowPhase1] = useState<boolean>(true);

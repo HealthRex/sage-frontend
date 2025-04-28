@@ -39,7 +39,6 @@ export default function MultiStepPageComponent() {
     setLoading(true); // Set loading to true when starting the request
 
     try {
-        console.log("Request Body:", requestBody);
         const response = await fetch("https://assist-pc-backend-dev.onrender.com/referral-streamed", {
             method: "POST",
             headers: {
