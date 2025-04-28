@@ -67,6 +67,7 @@ ol li ul{
   flex-direction: column;
   gap: 10px;
   margin-top: 1rem;
+  padding: 0px 0px 0px 15px;
 }
 .botReply li{
   display: flex;
@@ -74,7 +75,12 @@ ol li ul{
 
 .botReply li span{
   display: list-item;
+}
 
+
+.scrollable-content {
+  height: 100%;
+  overflow-y: auto;
 }
 
 @keyframes fadeGlow {

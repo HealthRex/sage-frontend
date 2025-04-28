@@ -16,10 +16,12 @@
     "@mui/material": "^6.4.2",
     "@mui/material-nextjs": "^6.4.2",
     "@mui/styles": "^6.4.3",
+    "@server-sent-stream/web": "^1.0.3",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
+    "react-scroll-to-bottom": "^4.2.0",
     "sharp": "^0.33.5"
   },
   "devDependencies": {
@@ -27,6 +29,7 @@
     "@types/node": "^20.3.0",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19",
+    "@types/react-scroll-to-bottom": "^4.2.5",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
     "typescript": "^5"
