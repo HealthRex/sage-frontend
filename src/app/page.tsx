@@ -1,7 +1,6 @@
 import { Box, Container } from "@mui/material";
 import Header from "@/components/header";
 import MultiStepPageComponent from "@/components/multiStepPageComponent";
-import Footer from "@/components/footer";
 
 
 
@@ -13,14 +12,15 @@ export default function Home() {
       display: "flex",
       flexDirection: "column",
       minHeight: "100vh",
+      backgroundColor: "#f2f7ff50",
     }}
   >
     <Header />
     <Container
       maxWidth="lg"
       sx={{
-        marginTop: 12,
-        marginBottom: 4,
+         marginTop: "72px",
+        marginBottom: 0,
         flex: 1,
         display: "flex",
         justifyContent: "center",
@@ -38,7 +38,6 @@ export default function Home() {
         <MultiStepPageComponent />
       </Box>
     </Container>
-    <Footer />
   </Box>
   );
 }

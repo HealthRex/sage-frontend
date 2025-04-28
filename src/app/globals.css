@@ -62,6 +62,27 @@ ol li ul{
   margin: 0 0 0 14px;
 }
 
+.botReply{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 1rem;
+  padding: 0px 0px 0px 15px;
+}
+.botReply li{
+  display: flex;
+}
+
+.botReply li span{
+  display: list-item;
+}
+
+
+.scrollable-content {
+  height: 100%;
+  overflow-y: auto;
+}
+
 @keyframes fadeGlow {
   0% {
     opacity: 0.5;
