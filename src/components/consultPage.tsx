@@ -58,7 +58,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   const [displayedTemplate, setDisplayedTemplate] = useState<
     Array<{ field: string; value: string }>
   >([]);
-
   const [typedText, setTypedText] = useState<string>("");
   const [wordIndex, setWordIndex] = useState(0);
   const [citationIndex, setCitationIndex] = useState(0);
