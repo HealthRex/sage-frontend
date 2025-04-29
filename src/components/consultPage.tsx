@@ -290,8 +290,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
     return Math.max(2, lines); // Minimum 2 rows
   };
 
-  console.log("Response:", response);
-
   useEffect(() => {
     let timeout: NodeJS.Timeout;
 
