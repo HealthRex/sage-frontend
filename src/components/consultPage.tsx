@@ -58,7 +58,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   const [displayedTemplate, setDisplayedTemplate] = useState<
     Array<{ field: string; value: string }>
   >([]);
-  
   const [typedText, setTypedText] = useState<string>("");
   const [wordIndex, setWordIndex] = useState(0);
   const [citationIndex, setCitationIndex] = useState(0);
@@ -154,7 +153,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
     }
   }, [response?.populatedTemplate]);
 
-
   // Typing summaryResponse word-by-word
   useEffect(() => {
     if (wordIndex < summaryWords.length) {
@@ -246,7 +244,10 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [displayedClinicalQuestion, setDisplayedClinicalQuestion] =
     useState(clinicalQuestion); // State to show the updated question
-    const [error, setError] = useState<string | null>(null); // State for error message
+  const [error, setError] = useState<string | null>(null); // State for error message
+  const [aierror, setAiError] = useState<string | null>(null); // State for error message
+  const [summaryerror, setSummaryError] = useState<string | null>(null); // State for error message
+  const [resetTimeouts, setResetTimeouts] = useState(false);
 
   const handleEditClick = () => {
     setIsEditing(true); // Enable edit mode
@@ -271,11 +272,15 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
     setTypedText(""); // Clear the AI-generated response text
     setWordIndex(0); // Reset word index for typing animation
     setCitationIndex(0); // Reset citation index for typing animation
+    setAiError(null); // Clear AI error message
+    setSummaryError(null); // Clear summary error message
+
     const requestBody = {
       question: editableClinicalQuestion, // Use the updated clinicalQuestion
       clinicalNotes: clinicalNotes,
     };
     onSubmit(requestBody); // Call handleSubmit with the updated requestBody
+    setResetTimeouts((prev) => !prev);
   };
 
   const calculateRows = (text: string) => {
@@ -284,6 +289,30 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
     const lines = Math.ceil(text.length / wordsPerLine);
     return Math.max(2, lines); // Minimum 2 rows
   };
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
+    if (!response?.specialistAIResponse) {
+      timeout = setTimeout(() => {
+        setAiError("Something went wrong. Please try again."); // Display error message
+      }, 50000); // 1 minute timeout
+    }
+
+    return () => clearTimeout(timeout); // Cleanup timeout on unmount or response change
+  }, [response?.specialistAIResponse, resetTimeouts]);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
+    if (!response?.specialistSummary) {
+      timeout = setTimeout(() => {
+        setSummaryError("Something went wrong. Please try again."); // Display error message
+      }, 50000); // 1 minute timeout
+    }
+
+    return () => clearTimeout(timeout); // Cleanup timeout on unmount or response change
+  }, [response?.specialistSummary, resetTimeouts]);
 
   return (
     <Box
@@ -469,27 +498,27 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
 
               {isEditing ? (
                 <TextField
-                variant="outlined"
-                fullWidth
-                multiline
-                rows={calculateRows(editableClinicalQuestion)} // Dynamically set rows
-                value={editableClinicalQuestion}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setEditableClinicalQuestion(value); // Update state on change
-                  if (value.trim().split(/\s+/).length >= 3) {
-                    setError(null); // Clear error if the input is valid
-                  }
-                }}
-                error={!!error} // Show error state if there's an error
-                helperText={error} // Display the error message
-                sx={{
-                  mb: 2,
-                  fontSize: "0.9rem",
-                  "& .MuiInputBase-input": {
-                    fontSize: "0.9rem", // Match the font size of the original Typography
-                  },
-                }}
+                  variant="outlined"
+                  fullWidth
+                  multiline
+                  rows={calculateRows(editableClinicalQuestion)} // Dynamically set rows
+                  value={editableClinicalQuestion}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setEditableClinicalQuestion(value); // Update state on change
+                    if (value.trim().split(/\s+/).length >= 3) {
+                      setError(null); // Clear error if the input is valid
+                    }
+                  }}
+                  error={!!error} // Show error state if there's an error
+                  helperText={error} // Display the error message
+                  sx={{
+                    mb: 2,
+                    fontSize: "0.9rem",
+                    "& .MuiInputBase-input": {
+                      fontSize: "0.9rem", // Match the font size of the original Typography
+                    },
+                  }}
                 />
               ) : (
                 <Typography
@@ -505,13 +534,13 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                   {/* Show the updated clinical question */}
                 </Typography>
               )}
-
+              
               {isEditing && (
                 <Box sx={{ display: "flex", gap: 2 }}>
                   <Button
                     variant="contained"
                     onClick={handleSaveClick}
-                    disabled={barLoading}
+                    disabled={barLoading && typeof aierror != "string"}
                     sx={{ mb: 2 }}
                   >
                     Save
@@ -530,7 +559,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
             <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
               Specialist Summary
             </Typography>
-            {response?.specialistSummary ? (
+            {response.specialistSummary ? (
               <Typography
                 variant="body1"
                 component="pre"
@@ -540,7 +569,15 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                   fontSize: "0.9rem",
                 }}
               >
-                {response?.specialistSummary}
+                {response.specialistSummary}
+              </Typography>
+            ) : summaryerror ? (
+              <Typography
+                variant="body1"
+                sx={{ color: "red", fontWeight: "bold", mt: 2 }}
+              >
+                {summaryerror}
+
               </Typography>
             ) : (
               <>
@@ -581,7 +618,14 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
             <Skeleton variant="text" width="60%" height={20} sx={{ mb: 2 }} />
           </>
         )}
-        {response && response.specialistAIResponse ? (
+        {aierror ? (
+          <Typography
+            variant="body1"
+            sx={{ color: "red", fontWeight: "bold", mt: 2 }}
+          >
+            {aierror}
+          </Typography>
+        ) : response && response.specialistAIResponse ? (
           <Box
             sx={{
               position: "relative",
@@ -943,7 +987,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
             <Skeleton variant="text" width="40%" height={20} sx={{ mb: 2 }} />
           </>
         )}
-        {/* <div ref={bottomRef} style={{ height: "0px" }}></div> */}
       </Box>
     </Box>
   );
