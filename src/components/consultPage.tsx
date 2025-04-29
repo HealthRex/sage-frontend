@@ -58,11 +58,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   const [displayedTemplate, setDisplayedTemplate] = useState<
     Array<{ field: string; value: string }>
   >([]);
-  const [typedSpecialistSummary, setTypedSpecialistSummary] =
-    useState<string>("");
-  const [index, setIndex] = useState(0);
-  const summaryText = response?.specialistSummary || "";
-  const words = summaryText.split(" ");
+  
   const [typedText, setTypedText] = useState<string>("");
   const [wordIndex, setWordIndex] = useState(0);
   const [citationIndex, setCitationIndex] = useState(0);
@@ -122,7 +118,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
       }
     };
   }, []);
-
+console.log("response", botReply);
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
@@ -159,19 +155,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
     }
   }, [response?.populatedTemplate]);
 
-  useEffect(() => {
-    if (!summaryText) return;
-
-    if (index < words.length) {
-      const timeout = setTimeout(() => {
-        setTypedSpecialistSummary((prev) =>
-          prev.length === 0 ? words[index] : `${prev} ${words[index]}`
-        );
-        setIndex((prev) => prev + 1);
-      }, 60);
-      return () => clearTimeout(timeout);
-    }
-  }, [index, summaryText, words]);
 
   // Typing summaryResponse word-by-word
   useEffect(() => {
@@ -285,6 +268,10 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
     setError(null); // Clear error if validation passes
     setIsEditing(false); // Disable edit mode
     setDisplayedClinicalQuestion(editableClinicalQuestion); // Update the displayed question
+    setBotReply([]); // Reset botReply to its default state
+    setTypedText(""); // Clear the AI-generated response text
+    setWordIndex(0); // Reset word index for typing animation
+    setCitationIndex(0); // Reset citation index for typing animation
     const requestBody = {
       question: editableClinicalQuestion, // Use the updated clinicalQuestion
       clinicalNotes: clinicalNotes,
@@ -544,7 +531,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
             <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
               Specialist Summary
             </Typography>
-            {typedSpecialistSummary ? (
+            {response?.specialistSummary ? (
               <Typography
                 variant="body1"
                 component="pre"
@@ -554,7 +541,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                   fontSize: "0.9rem",
                 }}
               >
-                {typedSpecialistSummary}
+                {response?.specialistSummary}
               </Typography>
             ) : (
               <>
@@ -606,6 +593,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                 p: 2,
                 borderRadius: 2,
                 boxShadow: 2,
+                marginBottom: "2px",
                 transition: "all 0.5s ease-in-out", // Smooth transition for height and opacity
                 opacity: typedText ? 1 : 0, // Fade in when text is displayed
                 height: typedText ? "auto" : 0, // Adjust height dynamically
@@ -809,7 +797,8 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                               )}
                             </ReactMarkdown>
                             {typeof msg.text === "object" &&
-                              "citations" in msg.text && (
+                              "citations" in msg.text &&
+                              msg.text.citations.length > 0 && (
                                 <>
                                   <Typography
                                     variant="h6"
