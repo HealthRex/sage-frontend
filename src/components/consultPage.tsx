@@ -274,7 +274,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
     setCitationIndex(0); // Reset citation index for typing animation
     setAiError(null); // Clear AI error message
     setSummaryError(null); // Clear summary error message
-
     const requestBody = {
       question: editableClinicalQuestion, // Use the updated clinicalQuestion
       clinicalNotes: clinicalNotes,
@@ -577,7 +576,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                 sx={{ color: "red", fontWeight: "bold", mt: 2 }}
               >
                 {summaryerror}
-
               </Typography>
             ) : (
               <>
