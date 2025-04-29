@@ -118,7 +118,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
       }
     };
   }, []);
-console.log("response", botReply);
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
