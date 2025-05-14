@@ -31,11 +31,10 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 interface SearchBarProps {
     barLoading: boolean;
-    data: string;
     setBotReply: React.Dispatch<React.SetStateAction<{ from: string; text: string | { summaryResponse: string; citations: Array<{ name: string; url: string }> } }[]>>;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ data, setBotReply, barLoading }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ setBotReply, barLoading }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
     const [suggestionsLoading, setSuggestionsLoading] = useState(true); // State for skeleton loading
@@ -47,19 +46,17 @@ const SearchBar: React.FC<SearchBarProps> = ({ data, setBotReply, barLoading }) 
     const fetchSuggestions = async () => {
         setSuggestionsLoading(true); // Start skeleton loading
         try {
-            const requestBody = [ data ];
             const response = await fetch('https://assist-pc-backend-dev.onrender.com/followup-questions', {
-                method: 'POST',
+                method: 'GET', // Use GET method
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(requestBody),
             });
-
+    
             if (!response.ok) {
                 throw new Error('Failed to fetch suggestions');
             }
-
+    
             const result = await response.json();
             if (Array.isArray(result)) {
                 setSuggestions(result);
@@ -77,7 +74,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ data, setBotReply, barLoading }) 
         if (!barLoading) {
             fetchSuggestions();
         }
-    }, [data, barLoading]);
+    }, [ barLoading]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
@@ -94,7 +91,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ data, setBotReply, barLoading }) 
         ]);
 
         try {
-            const requestBody = [data, searchTerm.trim()];
+            const requestBody = {
+                question: searchTerm,
+            };
+            console.log('Request Body:', requestBody);
             const response = await fetch('https://assist-pc-backend-dev.onrender.com/ask-pathway-streamed', {
                 method: 'POST',
                 headers: {
