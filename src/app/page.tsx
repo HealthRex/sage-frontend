@@ -1,12 +1,14 @@
 import { Box, Container } from "@mui/material";
 import Header from "@/components/header";
 import MultiStepPageComponent from "@/components/multiStepPageComponent";
+import { SessionProvider } from "@/components/sessionContext";
 
 
 
 export default function Home() {
 
   return (
+    <SessionProvider>
     <Box
     sx={{
       display: "flex",
@@ -39,5 +41,6 @@ export default function Home() {
       </Box>
     </Container>
   </Box>
+  </SessionProvider>
   );
 }
