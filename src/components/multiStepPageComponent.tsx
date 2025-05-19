@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -68,7 +68,7 @@ export default function MultiStepPageComponent() {
         // Store the cookie value in a state variable
         setSessionId(setCookieHeader);
       }
-
+      console.log("Session ID:", sessionId);
       const stream = response.body;
       const decoder = new EventSourceStream();
       stream.pipeThrough(decoder);
