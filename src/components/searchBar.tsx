@@ -14,7 +14,6 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { styled } from '@mui/material/styles';
 import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
-import EventSourceStream from '@server-sent-stream/web';
 
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
@@ -43,32 +42,34 @@ const SearchBar: React.FC<SearchBarProps> = ({ setBotReply, barLoading }) => {
     const theme = useTheme();
 
     // Fetch suggestions from the API
+
     const fetchSuggestions = async () => {
-        setSuggestionsLoading(true); // Start skeleton loading
+        setSuggestionsLoading(true)
         try {
-            const response = await fetch('https://assist-pc-backend-dev.onrender.com/followup-questions', {
-                method: 'GET', // Use GET method
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-    
-            if (!response.ok) {
-                throw new Error('Failed to fetch suggestions');
-            }
-    
-            const result = await response.json();
-            if (Array.isArray(result)) {
-                setSuggestions(result);
-            } else {
-                console.warn('Unexpected response format:', result);
-            }
+          const response = await fetch("/api/followup", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include"  // if you're on same-origin or set up CORS accordingly
+          })
+      
+          if (!response.ok) {
+            throw new Error("Failed to fetch suggestions")
+          }
+      
+          const result = await response.json()
+          if (Array.isArray(result)) {
+            setSuggestions(result)
+          } else {
+            console.warn("Unexpected response format:", result)
+          }
         } catch (error) {
-            console.error('Error fetching suggestions:', error);
+          console.error("Error fetching suggestions:", error)
         } finally {
-            setSuggestionsLoading(false); // Stop skeleton loading
+          setSuggestionsLoading(false)
         }
-    };
+      }
 
     useEffect(() => {
         if (!barLoading) {
@@ -81,66 +82,76 @@ const SearchBar: React.FC<SearchBarProps> = ({ setBotReply, barLoading }) => {
     };
 
     const handleSubmit = async () => {
-        if (!searchTerm.trim()) return;
-        setLoading(true);
-
+        if (!searchTerm.trim()) return
+        setLoading(true)
+      
         setBotReply((prev) => [
-            ...prev,
-            { from: 'user', text: searchTerm.trim() },
-            { from: 'bot', text: 'Loading' },
-        ]);
-
+          ...prev,
+          { from: 'user', text: searchTerm.trim() },
+          { from: 'bot', text: 'Loading' },
+        ])
+      
         try {
-            const requestBody = {
-                question: searchTerm,
-            };
-            console.log('Request Body:', requestBody);
-            const response = await fetch('https://assist-pc-backend-dev.onrender.com/ask-pathway-streamed', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody),
-            });
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
-            if (!response.body || !(response.body instanceof ReadableStream)) {
-                throw new Error('Response body is not a readable stream');
-            }
-
-            const stream = response.body;
-            const decoder = new EventSourceStream();
-            stream.pipeThrough(decoder);
-
-            const reader = decoder.readable.getReader();
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done || value.data == null) break;
-
-                const jsonStr = value.data;
-                try {
-                    const parsed = JSON.parse(jsonStr);
-                    setBotReply((prev) => [
+          const requestBody = {
+            question: searchTerm,
+          }
+      
+          const response = await fetch('/api/ask-pathway-streamed', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+            credentials: 'include', // important if you're keeping cookies within same-origin
+          })
+      
+          if (!response.ok || !response.body) {
+            throw new Error('Network response was not ok')
+          }
+      
+          const reader = response.body.getReader()
+          const decoder = new TextDecoder()
+          let buffer = ""
+      
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+      
+            if (value) {
+              buffer += decoder.decode(value, { stream: true })
+      
+              const parts = buffer.split("\n\n")
+              buffer = parts.pop() || ""
+      
+              for (const part of parts) {
+                const lines = part.split("\n")
+                for (const line of lines) {
+                  if (line.startsWith("data:")) {
+                    const jsonStr = line.replace("data:", "").trim()
+                    try {
+                      const parsed = JSON.parse(jsonStr)
+                      setBotReply((prev) => [
                         ...prev.slice(0, -1),
                         { from: 'bot', text: parsed },
-                    ]);
-                } catch (err) {
-                    console.warn('Invalid JSON in data:', err);
+                      ])
+                    } catch (err) {
+                      console.warn("Invalid JSON in data:", err)
+                    }
+                  }
                 }
+              }
             }
+          }
         } catch (error) {
-            console.error('Error during streaming:', error);
-            setBotReply((prev) => [
-                ...prev.slice(0, -1),
-                { from: 'bot', text: 'Something went wrong. Please try again.' },
-            ]);
+          console.error("Error during streaming:", error)
+          setBotReply((prev) => [
+            ...prev.slice(0, -1),
+            { from: 'bot', text: 'Something went wrong. Please try again.' },
+          ])
         } finally {
-            setLoading(false);
+          setLoading(false)
         }
-    };
+      }
 
     const handleSuggestionClick = (suggestion: string) => {
         setSearchTerm(suggestion);

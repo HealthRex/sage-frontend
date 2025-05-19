@@ -10,8 +10,6 @@ import {
 } from "@mui/material";
 import ClinicalQuestionPage from "./clinicalQuestionPage";
 import ConsultPage from "./consultPage";
-import EventSourceStream from '@server-sent-stream/web';
-import { useSession } from "./sessionContext";
 
 const steps = ["Clinical Question", "Review"];
 
@@ -33,66 +31,62 @@ export default function MultiStepPageComponent() {
   const [questionError, setQuestionError] = useState("");
   const [notesError, setNotesError] = useState("");
   const [loading, setLoading] = useState<boolean>(false); // New loading state
-  const { sessionId, setSessionId } = useSession();
 
 
   async function handleSubmit(requestBody: { question: string; clinicalNotes: string }) {
-    setApiResponse(null);
-    setLoading(true);
-    
+    setApiResponse(null)
+    setLoading(true)
+  
     try {
-      const response = await fetch("https://assist-pc-backend-dev.onrender.com/referral-streamed", {
+      const response = await fetch("/api/referral", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(requestBody),
       })
-
       if (!response.ok || !response.body) {
-        throw new Error("Network response was not ok or body is null");
+        throw new Error("Network response was not ok or body is null")
       }
-
-      const headersObj: Record<string, string> = {};
-      response.headers.forEach((value, key) => {
-        headersObj[key] = value;
-      });
-      console.log("All response headers:", headersObj);
-
-      
-      console.log("response:", response.headers);
-      response.headers.forEach(console.log)
-      const setCookieHeader = response.headers.get("set-cookie");
-      if (setCookieHeader) {
-        console.log("Set-Cookie header:", setCookieHeader);
-        // Store the cookie value in a state variable
-        setSessionId(setCookieHeader);
-      }
-      console.log("Session ID:", sessionId);
-      const stream = response.body;
-      const decoder = new EventSourceStream();
-      stream.pipeThrough(decoder);
-
-      const reader = decoder.readable.getReader();
+  
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ""
+  
       while (true) {
-        const { done, value } = await reader.read();
-        if (done || value.data == null) break;
-
-        const jsonStr = value.data;
-        try {
-          const parsed = JSON.parse(jsonStr);
-          setApiResponse((prev) => ({
-            ...(prev || {}),
-            ...parsed,
-          }));
-        } catch (err) {
-          console.warn("Invalid JSON in data:", err);
+        const { done, value } = await reader.read()
+        if (done) break
+  
+        if (value) {
+          buffer += decoder.decode(value, { stream: true })
+  
+          // Process any complete SSE messages in the buffer
+          const parts = buffer.split("\n\n")
+          buffer = parts.pop() || ""  // Keep any incomplete chunk in buffer
+  
+          for (const part of parts) {
+            const lines = part.split("\n")
+            for (const line of lines) {
+              if (line.startsWith("data:")) {
+                const jsonStr = line.replace("data:", "").trim()
+                try {
+                  const parsed = JSON.parse(jsonStr)
+                  setApiResponse((prev) => ({
+                    ...(prev || {}),
+                    ...parsed,
+                  }))
+                } catch (err) {
+                  console.warn("Invalid JSON in data:", err)
+                }
+              }
+            }
+          }
         }
       }
     } catch (error) {
-      console.error("Error during streaming:", error);
+      console.error("Error during streaming:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
