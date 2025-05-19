@@ -948,7 +948,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                 }}
               >
                 <SearchBar
-                  data={response.specialistAIResponse.summaryResponse}
                   setBotReply={setBotReply}
                   barLoading={barLoading}
                 />
