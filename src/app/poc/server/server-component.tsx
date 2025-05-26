@@ -1,5 +1,6 @@
 import {cookies} from "next/headers";
 import {RequestCookie} from "next/dist/compiled/@edge-runtime/cookies";
+import {BACKEND} from "@/app/poc/const";
 
 export default function ServerComponent() {
     const res = fetchDataFromApi(); // Fetch data from third-party API
@@ -12,7 +13,7 @@ export default function ServerComponent() {
 }
 
 export async function fetchDataFromApi() {
-    const response = await fetch(process.env.BACKEND + '/referral', {
+    const response = await fetch(BACKEND + '/referral', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
@@ -37,7 +38,7 @@ export async function fetchDataFromApi() {
         const connectSid = cookieStore.get('connect.sid') as RequestCookie;
         const connectSidStr = connectSid.name + '=' + connectSid.value;
         console.log(connectSidStr);
-        const followups = await fetch(process.env.BACKEND + '/followup-questions', {
+        const followups = await fetch(BACKEND + '/followup-questions', {
             headers: {
                 Cookie: connectSidStr
             },
