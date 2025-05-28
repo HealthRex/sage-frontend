@@ -1,10 +1,11 @@
 'use client';
 import {useState} from 'react';
+import {BACKEND} from "@/app/poc/const";
 
 export default function ClientComponent() {
     const [followups, setFollowups] = useState("");
     const getFollowups = async () => {
-        const response = await fetch(process.env.BACKEND + '/followup-questions', {
+        const response = await fetch(BACKEND + '/followup-questions', {
             credentials: 'include'
         })
 

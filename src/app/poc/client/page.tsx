@@ -1,5 +1,6 @@
 "use client"
 import {FormEvent, useState} from "react";
+import {BACKEND} from "@/app/poc/const";
 
 export default function Home() {
     const [data, setData] = useState("");
@@ -9,7 +10,7 @@ export default function Home() {
         event.preventDefault()
 
         const formData = new FormData(event.currentTarget)
-        const response = await fetch(process.env.BACKEND + '/referral', {
+        const response = await fetch(BACKEND + '/referral', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -25,7 +26,7 @@ export default function Home() {
     };
 
     const getFollowups = async () => {
-        const response = await fetch(process.env.BACKEND + '/followup-questions', {credentials: 'include'})
+        const response = await fetch(BACKEND + '/followup-questions', {credentials: 'include'})
 
         // Handle response if necessary
         const responseJson = await response.json()
