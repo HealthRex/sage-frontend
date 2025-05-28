@@ -7,6 +7,7 @@ export async function POST(request: NextRequest) {
 
     const response = await fetch("https://assist-pc-backend-dev.onrender.com/ask-pathway-streamed", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...(cookie ? { "Cookie": cookie } : {}),
