@@ -36,6 +36,20 @@ npm run dev
 
 The application will be available at [http://localhost:3000].
 
+### Running with Docker
+
+To run the application using Docker:
+
+```bash
+# Build the Docker image
+docker build -t sage-frontend .
+
+# Run the container
+docker run -p 3000:3000 sage-frontend
+```
+
+The application will be available at [http://localhost:3000].
+
 ---
 
 ## Project Structure
