@@ -10,6 +10,7 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(requestBody),
+      credentials: "include",
     })
 
     if (!response.ok || !response.body) {

@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch("https://assist-pc-backend-dev.onrender.com/followup-questions", {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...(cookie ? { "Cookie": cookie } : {}),
