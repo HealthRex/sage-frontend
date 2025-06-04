@@ -1,8 +1,8 @@
-# assist-pc-frontend
+# sage-frontend
 
 ## Overview
 
-**assist-pc-frontend** is a modern, modular front-end application built using Next.js and Type script. It provides a streamlined development environment with integrated tools for linting, testing, Docker support, and deployment workflows. This project is tailored for building responsive and accessible web applications.
+**sage-frontend** is a modern, modular front-end application built using Next.js and Type script. It provides a streamlined development environment with integrated tools for linting, testing, Docker support, and deployment workflows. This project is tailored for building responsive and accessible web applications.
 
 ---
 
@@ -19,8 +19,8 @@ Clone the repository and install the required dependencies:
 
 ```bash
 # Clone the repository
-git clone https://github.com/HealthRex/assist-pc-frontend
-cd assist-pc-frontend
+git clone https://github.com/HealthRex/sage-frontend
+cd sage-frontend
 
 # Install dependencies
 npm install
