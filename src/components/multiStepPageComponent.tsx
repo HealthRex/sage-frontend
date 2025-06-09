@@ -39,7 +39,7 @@ export default function MultiStepPageComponent() {
     setLoading(true); // Set loading to true when starting the request
 
     try {
-        const response = await fetch("https://assist-pc-backend-dev.onrender.com/referral-streamed", {
+        const response = await fetch("https://api.sageconsult.ai/referral-streamed", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

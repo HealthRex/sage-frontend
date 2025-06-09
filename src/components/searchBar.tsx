@@ -48,7 +48,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ data, setBotReply, barLoading }) 
         setSuggestionsLoading(true); // Start skeleton loading
         try {
             const requestBody = [ data ];
-            const response = await fetch('https://assist-pc-backend-dev.onrender.com/followup-questions', {
+            const response = await fetch('https://api.sageconsult.ai/followup-questions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ data, setBotReply, barLoading }) 
 
         try {
             const requestBody = [data, searchTerm.trim()];
-            const response = await fetch('https://assist-pc-backend-dev.onrender.com/ask-pathway-streamed', {
+            const response = await fetch('https://api.sageconsult.ai/ask-pathway-streamed', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
