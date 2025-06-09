@@ -17,11 +17,11 @@ import {
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import Divider from "@mui/material/Divider";
-import SearchBar from "./searchBar";
 import { useMemo } from "react"; // Ensure useMemo is imported
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded";
-
+import { FollowUpQuestions, SearchBar } from "./searchBar";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 interface ApiResponse {
   specialistSummary: string;
   populatedTemplate: Array<{ field: string; value: string }>;
@@ -89,6 +89,8 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleScroll = () => {
     if (containerRef.current) {
@@ -533,7 +535,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                   {/* Show the updated clinical question */}
                 </Typography>
               )}
-              
+
               {isEditing && (
                 <Box sx={{ display: "flex", gap: 2 }}>
                   <Button
@@ -630,17 +632,52 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
             }}
           >
             <Paper
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                boxShadow: 2,
-                marginBottom: "2px",
-                transition: "all 0.5s ease-in-out", // Smooth transition for height and opacity
-                opacity: typedText ? 1 : 0, // Fade in when text is displayed
-                height: typedText ? "auto" : 0, // Adjust height dynamically
-                overflow: "hidden", // Prevent content overflow during transition
-              }}
-            >
+      sx={{
+        p: 2,
+        borderRadius: 2,
+        boxShadow: 2,
+        marginBottom: "2px",
+        transition: "all 0.5s ease-in-out",
+        opacity: typedText ? 1 : 0,
+        height: typedText ? "auto" : 0,
+        overflow: "hidden",
+        position: "relative", // Add for absolute button
+      }}
+      id="ai-generated-response-paper"
+    >
+      {/* Copy All Text Button */}
+      <IconButton
+        aria-label="Copy all text"
+        size="small"
+        sx={{
+          position: "absolute",
+          top: 8,
+          right: 8,
+          zIndex: 2,
+          bgcolor: "transparent",
+          "&:hover": { bgcolor: "#e0e0e0" },
+        }}
+       onClick={() => {
+    // Copy the HTML content of the Paper (preserving formatting)
+    const paper = document.getElementById("ai-generated-response-paper");
+    if (paper) {
+      const html = paper.innerHTML;
+      // Use Clipboard API to copy as HTML
+      if (navigator.clipboard && window.ClipboardItem) {
+        const blob = new Blob([html], { type: "text/html" });
+        const item = new window.ClipboardItem({ "text/html": blob });
+        navigator.clipboard.write([item]);
+      } else {
+        // fallback: copy as plain text
+        navigator.clipboard.writeText(paper.innerText);
+      }
+    }
+  }}
+      >
+        <Tooltip title="Copy response" arrow placement="top">
+          <ContentCopyIcon fontSize="small" />
+        </Tooltip>
+      </IconButton>
               <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
                 AI Generated Response
               </Typography>
@@ -902,7 +939,12 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                 ))}
               </Paper>
             )}
-
+            {!barLoading ? (
+              <FollowUpQuestions
+                barLoading={barLoading}
+                onSuggestionClick={setSearchTerm}
+              />
+            ) : null}
             {!barLoading && showScrollButton && (
               <Button
                 variant="contained"
@@ -910,7 +952,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                 sx={{
                   mt: 2,
                   position: "sticky",
-                  bottom: 123,
+                  bottom: 63,
                   right: 0,
                   bgcolor: "#4C5FD5", // match that blue
                   color: "white",
@@ -948,8 +990,9 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                 }}
               >
                 <SearchBar
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
                   setBotReply={setBotReply}
-                  barLoading={barLoading}
                 />
               </Box>
             )}
