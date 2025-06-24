@@ -1,2 +1,2 @@
-export const BACKEND = 'https://assist-pc-backend-dev.onrender.com'
+export const BACKEND = 'https://api-dev.sageconsult.ai'
 // export const BACKEND = 'http://localhost:3000'
