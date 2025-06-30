@@ -16,7 +16,8 @@ export default function Home() {
             body: JSON.stringify({
                 question: formData.get('question'),
                 clinicalNotes: formData.get('clinicalNotes'),
-            })
+            }),
+            credentials: "include"
         })
 
         console.log(response.headers.getSetCookie())
