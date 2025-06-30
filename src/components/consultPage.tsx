@@ -24,10 +24,17 @@ import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded";
 
 interface ApiResponse {
   specialistSummary: string;
-  populatedTemplate: Array<{ field: string; value: string }>;
+  basicPatientSummary: Array<{
+    field: string;
+    value: string;
+  }>;
+  populatedTemplate: Array<Record<string, any>>; // Generic and flexible
   specialistAIResponse: {
     summaryResponse: string;
-    citations: Array<{ name: string; url: string }>;
+    citations: Array<{
+      name: string;
+      url: string;
+    }>;
   };
 }
 
@@ -148,10 +155,10 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   }, [phase, step]);
 
   useEffect(() => {
-    if (response?.populatedTemplate) {
-      setDisplayedTemplate(response.populatedTemplate);
+    if (response?.basicPatientSummary) {
+      setDisplayedTemplate(response.basicPatientSummary);
     }
-  }, [response?.populatedTemplate]);
+  }, [response?.basicPatientSummary]);
 
   // Typing summaryResponse word-by-word
   useEffect(() => {
@@ -313,6 +320,133 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
     return () => clearTimeout(timeout); // Cleanup timeout on unmount or response change
   }, [response?.specialistSummary, resetTimeouts]);
 
+  
+const renderKeyValuePairs = (data: any, level: number = 0): React.ReactNode => {
+  if (Array.isArray(data)) {
+    // Render array as a nested List
+    return (
+      <List sx={{ pl: 0, width: "100%" }}>
+        {data.map((item, index) => (
+          <React.Fragment key={index}>
+            {renderKeyValuePairs(item, level + 1)}
+            {/* Add separator between array items */}
+            {index < data.length - 1 && (
+              <Divider sx={{ width: "100%", bgcolor: "#e0e0e0", my: 1 }} />
+            )}
+          </React.Fragment>
+        ))}
+      </List>
+    );
+  } else if (typeof data === 'object' && data !== null) {
+    const entries = Object.entries(data);
+    return (
+      <>
+        {entries.map(([key, value], index) => (
+          <React.Fragment key={`${key}-${index}`}>
+            <ListItem
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                opacity: 0,
+                transform: "translateY(10px)",
+                animation: `fadeIn 0.5s ease-in ${index * 0.2}s forwards`,
+                pl: level,
+                width: "100%",
+                "@keyframes fadeIn": {
+                  from: { opacity: 0, transform: "translateY(10px)" },
+                  to: { opacity: 1, transform: "translateY(0)" },
+                },
+              }}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                {key}:
+              </Typography>
+              {typeof value === "string" && value.includes("\n") ? (
+                <ReactMarkdown
+                  components={{
+                    div: ({ children }) => (
+                      <Box
+                        component="p"
+                        sx={{
+                          pl: 0,
+                          color: "grey.700",
+                          paddingLeft: 0,
+                          display: "flex",
+                          flexDirection: "column",
+                          listStyleType: "none",
+                          gap: "0.5rem",
+                          width: "100%",
+                        }}
+                      >
+                        {children}
+                      </Box>
+                    ),
+                    p: ({ children }) => (
+                      <Typography component="span" variant="body2">
+                        {children}
+                        
+                      </Typography>
+                    ),
+                  }}
+                >
+                  {value}
+                </ReactMarkdown>
+                
+              ) : typeof value === "string" ? (
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => (
+                      <Typography variant="body2" sx={{ color: "grey.800" }}>
+                        {children}
+                      </Typography>
+                    ),
+                  }}
+                >
+                  {value || "N/A"}
+                </ReactMarkdown>
+              ) : Array.isArray(value) || (typeof value === "object" && value !== null) ? (
+                // Render nested object/array as a nested List
+                <List sx={{ width: "100%" }}>
+                  {renderKeyValuePairs(value, level + 1)}
+                </List>
+              ) : (
+                <Typography variant="body2" sx={{ color: "grey.800" }}>
+                  {String(value)}
+                </Typography>
+              )}
+            </ListItem>
+            {/* Add separator after each key except the last */}
+            {index < entries.length - 1 && (
+              <Divider sx={{ width: "100%", bgcolor: "#e0e0e0", my: 1 }} />
+            )}
+          </React.Fragment>
+        ))}
+      </>
+    );
+  } else {
+    return (
+      <ListItem
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          pl: 0,
+          width: "100%",
+        }}
+      >
+        <Typography variant="body2" sx={{ color: "grey.800" }}>
+          {String(data)}
+        </Typography>
+      </ListItem>
+    );
+  }
+};
+  
+  
+  console.log("Response:", response);
+
+
   return (
     <Box
       sx={{
@@ -380,7 +514,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                                 <Box
                                   component="p"
                                   sx={{
-                                    pl: 2,
                                     color: "grey.700",
                                     paddingLeft: 0,
                                     display: "flex",
@@ -418,11 +551,24 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                           </ReactMarkdown>
                         )}
                       </ListItem>
-                      {index < displayedTemplate.length - 1 && (
+                      {index <= displayedTemplate.length - 1 && (
                         <Divider sx={{ mb: 1, mt: 2 }} />
                       )}{" "}
                     </React.Fragment>
                   ))}
+                  {response?.populatedTemplate && response.populatedTemplate.length > 0 ? (
+                    response.populatedTemplate.map((item, index) => (
+                      <Box key={index}>
+                        <Box  sx={{ mb: 0, p: 2, pt:2}}>
+                        {renderKeyValuePairs(item)}
+                      </Box>
+                        {index < response.populatedTemplate.length - 1 && (
+                        <Divider  sx={{ mt: 0 }}  />
+                      )}
+                      </Box>
+                    ))
+                  ) : null}
+
                 </List>
               </Paper>
             </>

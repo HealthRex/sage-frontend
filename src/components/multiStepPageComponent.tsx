@@ -15,13 +15,19 @@ const steps = ["Clinical Question", "Review"];
 
 interface ApiResponse {
   specialistSummary: string;
-  populatedTemplate: Array<{ field: string; value: string }>;
+  basicPatientSummary: Array<{
+    field: string;
+    value: string;
+  }>;
+  populatedTemplate: Array<Record<string, any>>; // Generic and flexible
   specialistAIResponse: {
     summaryResponse: string;
-    citations:  Array<{ name: string; url: string }>;
+    citations: Array<{
+      name: string;
+      url: string;
+    }>;
   };
 }
-
 
 export default function MultiStepPageComponent() {
   const [activeStep, setActiveStep] = useState<number>(0);
