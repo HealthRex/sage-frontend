@@ -11,7 +11,6 @@ export default function ClientComponent() {
 
         // Handle response if necessary
         const responseJson = await response.json();
-        console.log(responseJson);
         setFollowups(JSON.stringify(responseJson));
     };
 

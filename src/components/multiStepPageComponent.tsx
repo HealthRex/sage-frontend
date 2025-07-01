@@ -19,7 +19,7 @@ interface ApiResponse {
     field: string;
     value: string;
   }>;
-  populatedTemplate: Array<Record<string, any>>; // Generic and flexible
+  populatedTemplate: Array<Record<string, unknown>>; // Generic and flexible
   specialistAIResponse: {
     summaryResponse: string;
     citations: Array<{

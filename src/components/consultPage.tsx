@@ -28,7 +28,7 @@ interface ApiResponse {
     field: string;
     value: string;
   }>;
-  populatedTemplate: Array<Record<string, any>>; // Generic and flexible
+  populatedTemplate: Array<Record<string, unknown>>; // Generic and flexible, avoids 'any'
   specialistAIResponse: {
     summaryResponse: string;
     citations: Array<{
@@ -321,7 +321,12 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   }, [response?.specialistSummary, resetTimeouts]);
 
   
-const renderKeyValuePairs = (data: any, level: number = 0): React.ReactNode => {
+type KeyValueData = string | number | boolean | null | undefined | KeyValueObject | KeyValueData[];
+interface KeyValueObject {
+  [key: string]: KeyValueData;
+}
+
+const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.ReactNode => {
   if (Array.isArray(data)) {
     // Render array as a nested List
     return (
@@ -338,7 +343,7 @@ const renderKeyValuePairs = (data: any, level: number = 0): React.ReactNode => {
       </List>
     );
   } else if (typeof data === 'object' && data !== null) {
-    const entries = Object.entries(data);
+    const entries = Object.entries(data as KeyValueObject);
     return (
       <>
         {entries.map(([key, value], index) => (
@@ -444,7 +449,6 @@ const renderKeyValuePairs = (data: any, level: number = 0): React.ReactNode => {
 };
   
   
-  console.log("Response:", response);
 
 
   return (
@@ -560,7 +564,7 @@ const renderKeyValuePairs = (data: any, level: number = 0): React.ReactNode => {
                     response.populatedTemplate.map((item, index) => (
                       <Box key={index}>
                         <Box  sx={{ mb: 0, p: 2, pt:2}}>
-                        {renderKeyValuePairs(item)}
+                        {renderKeyValuePairs(item as KeyValueObject)}
                       </Box>
                         {index < response.populatedTemplate.length - 1 && (
                         <Divider  sx={{ mt: 0 }}  />

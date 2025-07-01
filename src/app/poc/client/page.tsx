@@ -20,7 +20,6 @@ export default function Home() {
             credentials: "include"
         })
 
-        console.log(response.headers.getSetCookie())
         const responseJson = await response.json()
         // Handle response if necessary
         setData(JSON.stringify(responseJson))
@@ -34,7 +33,6 @@ export default function Home() {
         setFollowups(JSON.stringify(responseJson));
     };
 
-    console.log(data);
     return (
         <div>
             <form onSubmit={fetchData}>
