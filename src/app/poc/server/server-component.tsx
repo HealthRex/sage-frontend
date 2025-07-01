@@ -24,8 +24,10 @@ export async function fetchDataFromApi() {
     })
 
     const jsonResponse = await response.json();
+    console.log(jsonResponse);
 
     const cookieStore = await cookies();
+    console.log(cookieStore.getAll());
 
     const completeRes = {
         data: JSON.stringify(jsonResponse),
@@ -35,6 +37,7 @@ export async function fetchDataFromApi() {
     if (cookieStore.has('connect.sid')) {
         const connectSid = cookieStore.get('connect.sid') as RequestCookie;
         const connectSidStr = connectSid.name + '=' + connectSid.value;
+        console.log(connectSidStr);
         const followups = await fetch(BACKEND + '/followup-questions', {
             headers: {
                 Cookie: connectSidStr
@@ -43,7 +46,8 @@ export async function fetchDataFromApi() {
             cache: 'no-cache',
             mode: 'cors',
         })
-        // const followupsJson = await followups.json();
+        const followupsJson = await followups.json();
+        console.log(followupsJson)
 
         completeRes.cookie = connectSid.name + '=' + connectSid.value;
     }
