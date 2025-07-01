@@ -154,7 +154,7 @@ export default function MultiStepPageComponent() {
            null
           ) : (
             <Button variant="contained" onClick={handleNext}>
-              Generate Report
+              Generate Response
             </Button>
           )}
       </Box>
