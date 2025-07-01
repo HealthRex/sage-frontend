@@ -43,7 +43,7 @@ export async function fetchDataFromApi() {
             cache: 'no-cache',
             mode: 'cors',
         })
-        const followupsJson = await followups.json();
+        // const followupsJson = await followups.json();
 
         completeRes.cookie = connectSid.name + '=' + connectSid.value;
     }
