@@ -4,7 +4,7 @@ export async function POST(request: Request) {
   try {
     const requestBody = await request.json()
 
-    const response = await fetch("https://api-dev.sageconsult.ai/referral-streamed", {
+    const response = await fetch("https://api-dev.sageconsult.ai/referral", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
