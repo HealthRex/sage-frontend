@@ -68,7 +68,7 @@ export function SearchBar({
     ]);
 
     try {
-        const response = await fetch(process.env.DEV_BACKEND_URL + '/ask-pathway-streamed', {
+        const response = await fetch(process.env.BACKEND_URL + '/ask-pathway-streamed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: searchTerm }),
@@ -178,7 +178,7 @@ export function FollowUpQuestions({
     console.log('barLoading', barLoading);
     setSuggestionsLoading(true);
     try {
-      const response = await fetch(process.env.DEV_BACKEND_URL + '/followup-questions', {
+      const response = await fetch(process.env.BACKEND_URL + '/followup-questions', {
         credentials: 'include',
       });
 
