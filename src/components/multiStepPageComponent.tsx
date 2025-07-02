@@ -44,7 +44,7 @@ export default function MultiStepPageComponent() {
     setLoading(true)
   
     try {
-      const response = await fetch(process.env.BACKEND_URL + '/referral-streamed', {
+      const response = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + '/referral-streamed', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
