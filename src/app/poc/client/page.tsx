@@ -3,7 +3,7 @@ import {FormEvent, useState} from "react";
 import {BACKEND} from "@/app/poc/const";
 
 export default function Home() {
-    const [data, setData] = useState<Record<string, any>>({});
+    const [data, setData] = useState<Record<string, unknown>>({});
     const [followups, setFollowups] = useState("");
 
     const fetchData = async (event: FormEvent<HTMLFormElement>) => {
