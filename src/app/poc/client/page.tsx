@@ -22,9 +22,9 @@ export default function Home() {
          if (!response.body) {
            throw new Error("Response body is null");
          }
-         const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ""
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ""
   
       while (true) {
         const { done, value } = await reader.read()

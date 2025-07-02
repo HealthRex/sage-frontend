@@ -17,6 +17,7 @@ import ListIcon from '@mui/icons-material/List';
 import SearchIcon from '@mui/icons-material/Search';
 import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
 import { styled } from '@mui/material/styles';
+import { BACKEND } from '@/app/poc/const';
 
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
@@ -67,7 +68,7 @@ export function SearchBar({
     ]);
 
     try {
-      const response = await fetch('/api/ask-pathway-streamed', {
+        const response = await fetch(BACKEND + '/ask-pathway-streamed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: searchTerm }),
@@ -173,18 +174,16 @@ export function FollowUpQuestions({
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const fetchSuggestions = async () => {
+    console.log('barLoading', barLoading);
     setSuggestionsLoading(true);
     try {
-      const response = await fetch('/api/followup', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch(BACKEND + '/followup-questions', {
         credentials: 'include',
       });
 
       if (!response.ok) {
         throw new Error('Failed to fetch suggestions');
       }
-
       const result = await response.json();
       if (Array.isArray(result)) {
         setSuggestions(result);
