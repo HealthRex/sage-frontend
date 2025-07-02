@@ -468,25 +468,27 @@ const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.React
           borderRight: "1px solid #ddd",
           p: 2,
           paddingBottom: "2px",
+          paddingTop: "0px",
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {response ? (
             <>
-              <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
-                Auto-populated Data
-              </Typography>
               <Paper
                 elevation={3}
                 sx={{
                   p: 1,
-                  height: "593px",
+                  height: "663px",
                   overflow: "hidden",
                   overflowY: "auto",
                   borderRadius: "10px",
                   scrollbarWidth: "thin",
                 }}
               >
+                 <Typography variant="h6" sx={{ ml: "15px",mt: 1, fontWeight: "bold" }}>
+                    Patient Information
+                  </Typography>
+                  
                 <List>
                   {displayedTemplate.map((item, index) => (
                     <React.Fragment key={index}>
@@ -496,6 +498,7 @@ const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.React
                           flexDirection: "column",
                           alignItems: "flex-start",
                           opacity: 0,
+                          paddingTop: "10px",
                           transform: "translateY(10px)",
                           animation: `fadeIn 0.5s ease-in ${
                             index * 0.2
@@ -562,6 +565,9 @@ const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.React
                       )}{" "}
                     </React.Fragment>
                   ))}
+                  <Typography variant="h6" sx={{ ml: "15px",mt: 4, fontWeight: "bold" }}>
+                    Template Information
+                  </Typography> 
                   {response?.populatedTemplate && response.populatedTemplate.length > 0 ? (
                     response.populatedTemplate.map((item, index) => (
                       <Box key={index}>
