@@ -10,7 +10,7 @@ export default function Home() {
         event.preventDefault()
 
         const formData = new FormData(event.currentTarget)
-        const response = await fetch(BACKEND + '/referral', {
+        const response = await fetch(BACKEND + '/referral-streamed', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -19,9 +19,10 @@ export default function Home() {
             }),
             credentials: "include"
         })
-
+        console.log("response", response)
         const responseJson = await response.json()
         // Handle response if necessary
+        console.log("responseJson",responseJson)
         setData(JSON.stringify(responseJson))
     };
 
