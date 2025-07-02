@@ -4,7 +4,7 @@ export async function POST(request: Request) {
   try {
     const requestBody = await request.json()
 
-    const response = await fetch("https://assist-pc-backend-dev.onrender.com/referral-streamed", {
+    const response = await fetch("https://api-dev.sageconsult.ai/referral-streamed", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     if (!response.ok || !response.body) {
       return NextResponse.json({ message: "Network response was not ok or body is null" }, { status: 500 })
     }
-
+    
     // Setup a TransformStream to forward chunks to client
     const { readable, writable } = new TransformStream()
 

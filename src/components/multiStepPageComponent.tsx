@@ -50,11 +50,11 @@ export default function MultiStepPageComponent() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(requestBody),
+        credentials: "include"
       })
       if (!response.ok || !response.body) {
         throw new Error("Network response was not ok or body is null")
       }
-  
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ""

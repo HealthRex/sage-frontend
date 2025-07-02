@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
     const requestBody = await request.json()
     const cookie = request.headers.get("cookie")
 
-    const response = await fetch("https://assist-pc-backend-dev.onrender.com/ask-pathway-streamed", {
+    const response = await fetch("https://api-dev.sageconsult.ai/ask-pathway-streamed", {
       method: "POST",
       credentials: "include",
       headers: {

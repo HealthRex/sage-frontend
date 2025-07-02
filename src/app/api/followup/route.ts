@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
     // Extract cookie from client request headers
     const cookie = request.headers.get("cookie")
 
-    const response = await fetch("https://assist-pc-backend-dev.onrender.com/followup-questions", {
+    const response = await fetch("https://api-dev.sageconsult.ai/followup-questions", {
       method: "GET",
       credentials: "include",
       headers: {
