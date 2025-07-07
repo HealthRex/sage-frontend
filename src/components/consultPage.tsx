@@ -322,136 +322,141 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
     return () => clearTimeout(timeout); // Cleanup timeout on unmount or response change
   }, [response?.specialistSummary, resetTimeouts]);
 
-  
-type KeyValueData = string | number | boolean | null | undefined | KeyValueObject | KeyValueData[];
-interface KeyValueObject {
-  [key: string]: KeyValueData;
-}
-
-const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.ReactNode => {
-  if (Array.isArray(data)) {
-    // Render array as a nested List
-    return (
-      <List sx={{ pl: 0, width: "100%" }}>
-        {data.map((item, index) => (
-          <React.Fragment key={index}>
-            {renderKeyValuePairs(item, level + 1)}
-            {/* Add separator between array items */}
-            {index < data.length - 1 && (
-              <Divider sx={{ width: "100%", bgcolor: "#e0e0e0", my: 1 }} />
-            )}
-          </React.Fragment>
-        ))}
-      </List>
-    );
-  } else if (typeof data === 'object' && data !== null) {
-    const entries = Object.entries(data as KeyValueObject);
-    return (
-      <>
-        {entries.map(([key, value], index) => (
-          <React.Fragment key={`${key}-${index}`}>
-            <ListItem
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-                opacity: 0,
-                transform: "translateY(10px)",
-                animation: `fadeIn 0.5s ease-in ${index * 0.2}s forwards`,
-                pl: level,
-                width: "100%",
-                "@keyframes fadeIn": {
-                  from: { opacity: 0, transform: "translateY(10px)" },
-                  to: { opacity: 1, transform: "translateY(0)" },
-                },
-              }}
-            >
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                {key}:
-              </Typography>
-              {typeof value === "string" && value.includes("\n") ? (
-                <ReactMarkdown
-                  components={{
-                    div: ({ children }) => (
-                      <Box
-                        component="p"
-                        sx={{
-                          pl: 0,
-                          color: "grey.700",
-                          paddingLeft: 0,
-                          display: "flex",
-                          flexDirection: "column",
-                          listStyleType: "none",
-                          gap: "0.5rem",
-                          width: "100%",
-                        }}
-                      >
-                        {children}
-                      </Box>
-                    ),
-                    p: ({ children }) => (
-                      <Typography component="span" variant="body2">
-                        {children}
-                        
-                      </Typography>
-                    ),
-                  }}
-                >
-                  {value}
-                </ReactMarkdown>
-                
-              ) : typeof value === "string" ? (
-                <ReactMarkdown
-                  components={{
-                    p: ({ children }) => (
-                      <Typography variant="body2" sx={{ color: "grey.800" }}>
-                        {children}
-                      </Typography>
-                    ),
-                  }}
-                >
-                  {value || "N/A"}
-                </ReactMarkdown>
-              ) : Array.isArray(value) || (typeof value === "object" && value !== null) ? (
-                // Render nested object/array as a nested List
-                <List sx={{ width: "100%" }}>
-                  {renderKeyValuePairs(value, level + 1)}
-                </List>
-              ) : (
-                <Typography variant="body2" sx={{ color: "grey.800" }}>
-                  {String(value)}
-                </Typography>
-              )}
-            </ListItem>
-            {/* Add separator after each key except the last */}
-            {index < entries.length - 1 && (
-              <Divider sx={{ width: "100%", bgcolor: "#e0e0e0", my: 1 }} />
-            )}
-          </React.Fragment>
-        ))}
-      </>
-    );
-  } else {
-    return (
-      <ListItem
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          pl: 0,
-          width: "100%",
-        }}
-      >
-        <Typography variant="body2" sx={{ color: "grey.800" }}>
-          {String(data)}
-        </Typography>
-      </ListItem>
-    );
+  type KeyValueData =
+    | string
+    | number
+    | boolean
+    | null
+    | undefined
+    | KeyValueObject
+    | KeyValueData[];
+  interface KeyValueObject {
+    [key: string]: KeyValueData;
   }
-};
-  
-  
 
+  const renderKeyValuePairs = (
+    data: KeyValueData,
+    level: number = 0
+  ): React.ReactNode => {
+    if (Array.isArray(data)) {
+      // Render array as a nested List
+      return (
+        <List sx={{ pl: 0, width: "100%" }}>
+          {data.map((item, index) => (
+            <React.Fragment key={index}>
+              {renderKeyValuePairs(item, level + 1)}
+              {/* Add separator between array items */}
+              {index < data.length - 1 && (
+                <Divider sx={{ width: "100%", bgcolor: "#e0e0e0", my: 1 }} />
+              )}
+            </React.Fragment>
+          ))}
+        </List>
+      );
+    } else if (typeof data === "object" && data !== null) {
+      const entries = Object.entries(data as KeyValueObject);
+      return (
+        <>
+          {entries.map(([key, value], index) => (
+            <React.Fragment key={`${key}-${index}`}>
+              <ListItem
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  opacity: 0,
+                  transform: "translateY(10px)",
+                  animation: `fadeIn 0.5s ease-in ${index * 0.2}s forwards`,
+                  pl: level,
+                  width: "100%",
+                  "@keyframes fadeIn": {
+                    from: { opacity: 0, transform: "translateY(10px)" },
+                    to: { opacity: 1, transform: "translateY(0)" },
+                  },
+                }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  {key}:
+                </Typography>
+                {typeof value === "string" && value.includes("\n") ? (
+                  <ReactMarkdown
+                    components={{
+                      div: ({ children }) => (
+                        <Box
+                          component="p"
+                          sx={{
+                            pl: 0,
+                            color: "grey.700",
+                            paddingLeft: 0,
+                            display: "flex",
+                            flexDirection: "column",
+                            listStyleType: "none",
+                            gap: "0.5rem",
+                            width: "100%",
+                          }}
+                        >
+                          {children}
+                        </Box>
+                      ),
+                      p: ({ children }) => (
+                        <Typography component="span" variant="body2">
+                          {children}
+                        </Typography>
+                      ),
+                    }}
+                  >
+                    {value}
+                  </ReactMarkdown>
+                ) : typeof value === "string" ? (
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => (
+                        <Typography variant="body2" sx={{ color: "grey.800" }}>
+                          {children}
+                        </Typography>
+                      ),
+                    }}
+                  >
+                    {value || "N/A"}
+                  </ReactMarkdown>
+                ) : Array.isArray(value) ||
+                  (typeof value === "object" && value !== null) ? (
+                  // Render nested object/array as a nested List
+                  <List sx={{ width: "100%" }}>
+                    {renderKeyValuePairs(value, level + 1)}
+                  </List>
+                ) : (
+                  <Typography variant="body2" sx={{ color: "grey.800" }}>
+                    {String(value)}
+                  </Typography>
+                )}
+              </ListItem>
+              {/* Add separator after each key except the last */}
+              {index < entries.length - 1 && (
+                <Divider sx={{ width: "100%", bgcolor: "#e0e0e0", my: 1 }} />
+              )}
+            </React.Fragment>
+          ))}
+        </>
+      );
+    } else {
+      return (
+        <ListItem
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            pl: 0,
+            width: "100%",
+          }}
+        >
+          <Typography variant="body2" sx={{ color: "grey.800" }}>
+            {String(data)}
+          </Typography>
+        </ListItem>
+      );
+    }
+  };
 
   return (
     <Box
@@ -485,10 +490,13 @@ const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.React
                   scrollbarWidth: "thin",
                 }}
               >
-                 <Typography variant="h6" sx={{ ml: "15px",mt: 1, fontWeight: "bold" }}>
-                    Patient Information
-                  </Typography>
-                  
+                <Typography
+                  variant="h6"
+                  sx={{ ml: "15px", mt: 1, fontWeight: "bold" }}
+                >
+                  Patient Information
+                </Typography>
+
                 <List>
                   {displayedTemplate.map((item, index) => (
                     <React.Fragment key={index}>
@@ -565,22 +573,25 @@ const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.React
                       )}{" "}
                     </React.Fragment>
                   ))}
-                  <Typography variant="h6" sx={{ ml: "15px",mt: 4, fontWeight: "bold" }}>
+                  <Typography
+                    variant="h6"
+                    sx={{ ml: "15px", mt: 4, fontWeight: "bold" }}
+                  >
                     Template Information
-                  </Typography> 
-                  {response?.populatedTemplate && response.populatedTemplate.length > 0 ? (
-                    response.populatedTemplate.map((item, index) => (
-                      <Box key={index}>
-                        <Box  sx={{ mb: 0, p: 2, pt:2}}>
-                        {renderKeyValuePairs(item as KeyValueObject)}
-                      </Box>
-                        {index < response.populatedTemplate.length - 1 && (
-                        <Divider  sx={{ mt: 0 }}  />
-                      )}
-                      </Box>
-                    ))
-                  ) : null}
-
+                  </Typography>
+                  {response?.populatedTemplate &&
+                  response.populatedTemplate.length > 0
+                    ? response.populatedTemplate.map((item, index) => (
+                        <Box key={index}>
+                          <Box sx={{ mb: 0, p: 2, pt: 2 }}>
+                            {renderKeyValuePairs(item as KeyValueObject)}
+                          </Box>
+                          {index < response.populatedTemplate.length - 1 && (
+                            <Divider sx={{ mt: 0 }} />
+                          )}
+                        </Box>
+                      ))
+                    : null}
                 </List>
               </Paper>
             </>
@@ -691,7 +702,7 @@ const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.React
                   {/* Show the updated clinical question */}
                 </Typography>
               )}
-              
+
               {isEditing && (
                 <Box sx={{ display: "flex", gap: 2 }}>
                   <Button
@@ -788,7 +799,7 @@ const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.React
             }}
           >
             <Paper
-               sx={{
+              sx={{
                 p: 2,
                 borderRadius: 2,
                 boxShadow: 2,
@@ -813,22 +824,26 @@ const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.React
                   bgcolor: "transparent",
                   "&:hover": { bgcolor: "#e0e0e0" },
                 }}
-              onClick={() => {
-            // Copy the HTML content of the Paper (preserving formatting)
-            const paper = document.getElementById("ai-generated-response-paper");
-            if (paper) {
-              const html = paper.innerHTML;
-              // Use Clipboard API to copy as HTML
-              if (navigator.clipboard && window.ClipboardItem) {
-                const blob = new Blob([html], { type: "text/html" });
-                const item = new window.ClipboardItem({ "text/html": blob });
-                navigator.clipboard.write([item]);
-              } else {
-                // fallback: copy as plain text
-                navigator.clipboard.writeText(paper.innerText);
-              }
-            }
-          }}
+                onClick={() => {
+                  // Copy the HTML content of the Paper (preserving formatting)
+                  const paper = document.getElementById(
+                    "ai-generated-response-paper"
+                  );
+                  if (paper) {
+                    const html = paper.innerHTML;
+                    // Use Clipboard API to copy as HTML
+                    if (navigator.clipboard && window.ClipboardItem) {
+                      const blob = new Blob([html], { type: "text/html" });
+                      const item = new window.ClipboardItem({
+                        "text/html": blob,
+                      });
+                      navigator.clipboard.write([item]);
+                    } else {
+                      // fallback: copy as plain text
+                      navigator.clipboard.writeText(paper.innerText);
+                    }
+                  }
+                }}
               >
                 <Tooltip title="Copy response" arrow placement="top">
                   <ContentCopyIcon fontSize="small" />
@@ -868,12 +883,30 @@ const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.React
                 {response.specialistAIResponse.citations && (
                   <>
                     {response.specialistAIResponse.citations.length > 0 && (
-                      <Typography
-                        variant="h6"
-                        sx={{ mb: 1, mt: 2, fontWeight: "bold" }}
-                      >
-                        Quick References
-                      </Typography>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          gap: 1,
+                          textAlign: 'start',
+                          WebkitBoxFlex: 1,
+                          flexGrow: 1,
+                          margin: '12px 0px',
+                          alignItems: 'center',
+                        }}>
+                        <svg
+                          width="24" height="24"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2zm1-9h1V4H2v1h1zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2zm5-6v2h14V5zm0 14h14v-2H7zm0-6h14v-2H7z" />
+                        </svg>
+                        <Typography
+                          variant="h6"
+                          sx={{fontWeight: "bold" }}
+                        >
+                          References
+                        </Typography>
+                      </Box>
                     )}
                     <List
                       sx={{
@@ -1034,16 +1067,30 @@ const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.React
                               "citations" in msg.text &&
                               msg.text.citations.length > 0 && (
                                 <>
-                                  <Typography
-                                    variant="h6"
-                                    sx={{
-                                      mb: 1,
-                                      mt: 2,
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    Quick References
-                                  </Typography>
+                                  <Box
+                                  sx={{
+                                    display: 'flex',
+                                    textAlign: 'start',
+                                    WebkitBoxFlex: 1,
+                                    flexGrow: 1,
+                                    margin: '12px 0px',
+                                    alignItems: 'center',
+                                  }}>
+                                     <svg
+                                      width="24" height="24"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2zm1-9h1V4H2v1h1zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2zm5-6v2h14V5zm0 14h14v-2H7zm0-6h14v-2H7z" />
+                                    </svg>
+                                    <Typography
+                                      variant="h6"
+                                      sx={{fontWeight: "bold" }}
+                                    >
+                                      References
+                                    </Typography>
+                                  </Box>
+
                                   <List
                                     sx={{
                                       listStyleType: "disc",
@@ -1146,7 +1193,7 @@ const renderKeyValuePairs = (data: KeyValueData, level: number = 0): React.React
                 }}
               >
                 <SearchBar
-                   searchTerm={searchTerm}
+                  searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
                   setBotReply={setBotReply}
                 />

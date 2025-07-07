@@ -207,7 +207,7 @@ export function FollowUpQuestions({
   return (
     <Box
       sx={{
-        p: 3,
+        p: 2,
         borderRadius: 2,
         bgcolor: '#fff',
         boxShadow: 2,
