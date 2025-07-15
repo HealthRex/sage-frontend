@@ -479,16 +479,17 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {response ? (
             <>
-              <Paper
-                elevation={3}
-                sx={{
-                  p: 1,
-                  height: "663px",
-                  overflow: "hidden",
-                  overflowY: "auto",
-                  borderRadius: "10px",
-                  scrollbarWidth: "thin",
-                }}
+               <Paper
+              elevation={5}
+              sx={{
+                p: 1,
+                height: "calc(100vh - 122px)", 
+                maxHeight: "calc(100vh - 122px)", 
+                overflow: "hidden",
+                overflowY: "auto",
+                borderRadius: "10px",
+                scrollbarWidth: "thin",
+              }}
               >
                 <Typography
                   variant="h6"
@@ -641,7 +642,8 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
           pt: 0.1,
           boxShadow: 0,
           width: "50%",
-          height: "664px",
+          height: "calc(100vh - 122px)", 
+          maxHeight: "calc(100vh - 122px)", 
           overflow: "hidden",
           overflowY: "auto",
         }}
