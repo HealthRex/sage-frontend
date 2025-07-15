@@ -175,7 +175,6 @@ export function FollowUpQuestions({
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const fetchSuggestions = async () => {
-    console.log('barLoading', barLoading);
     setSuggestionsLoading(true);
     try {
       const response = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + '/followup-questions', {
