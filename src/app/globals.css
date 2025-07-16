@@ -71,7 +71,7 @@ ol li ul{
   padding: 0px 0px 0px 15px;
 }
 .botReply li{
-  display: flex;
+ display: inline;
 }
 
 .botReply li span{

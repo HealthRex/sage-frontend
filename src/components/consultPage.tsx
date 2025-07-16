@@ -95,9 +95,14 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const scrollToBottom = () => {
+const scrollToBottom = () => {
+  if (containerRef.current) {
+    const { scrollHeight, clientHeight } = containerRef.current;
+    containerRef.current.scrollTop = scrollHeight - clientHeight - 10; // 10px above bottom
+  } else {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }
+};
 
   const handleScroll = () => {
     if (containerRef.current) {
@@ -1023,17 +1028,8 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                                     {children}
                                   </span>
                                 ),
-                                p: ({ children }) => <span>{children}</span>,
                                 ul: ({ children }) => (
                                   <span className="botReply">{children}</span>
-                                ),
-                                hr: () => (
-                                  <span
-                                    style={{
-                                      borderTop: "1px solid #ccc",
-                                      display: "flex",
-                                    }}
-                                  />
                                 ),
                                 h3: ({ children }) => (
                                   <span
