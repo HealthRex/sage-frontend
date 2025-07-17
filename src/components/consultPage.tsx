@@ -17,17 +17,25 @@ import {
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import Divider from "@mui/material/Divider";
-import SearchBar from "./searchBar";
+import { FollowUpQuestions, SearchBar } from "./searchBar";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { useMemo } from "react"; // Ensure useMemo is imported
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded";
 
 interface ApiResponse {
   specialistSummary: string;
-  populatedTemplate: Array<{ field: string; value: string }>;
+  basicPatientSummary: Array<{
+    field: string;
+    value: string;
+  }>;
+  populatedTemplate: Array<Record<string, unknown>>; // Generic and flexible, avoids 'any'
   specialistAIResponse: {
     summaryResponse: string;
-    citations: Array<{ name: string; url: string }>;
+    citations: Array<{
+      name: string;
+      url: string;
+    }>;
   };
 }
 
@@ -83,12 +91,18 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
     [response?.specialistAIResponse?.citations]
   );
 
+  const [searchTerm, setSearchTerm] = useState("");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const scrollToBottom = () => {
+const scrollToBottom = () => {
+  if (containerRef.current) {
+    const { scrollHeight, clientHeight } = containerRef.current;
+    containerRef.current.scrollTop = scrollHeight - clientHeight - 10; // 10px above bottom
+  } else {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }
+};
 
   const handleScroll = () => {
     if (containerRef.current) {
@@ -148,10 +162,10 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
   }, [phase, step]);
 
   useEffect(() => {
-    if (response?.populatedTemplate) {
-      setDisplayedTemplate(response.populatedTemplate);
+    if (response?.basicPatientSummary) {
+      setDisplayedTemplate(response.basicPatientSummary);
     }
-  }, [response?.populatedTemplate]);
+  }, [response?.basicPatientSummary]);
 
   // Typing summaryResponse word-by-word
   useEffect(() => {
@@ -313,6 +327,142 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
     return () => clearTimeout(timeout); // Cleanup timeout on unmount or response change
   }, [response?.specialistSummary, resetTimeouts]);
 
+  type KeyValueData =
+    | string
+    | number
+    | boolean
+    | null
+    | undefined
+    | KeyValueObject
+    | KeyValueData[];
+  interface KeyValueObject {
+    [key: string]: KeyValueData;
+  }
+
+  const renderKeyValuePairs = (
+    data: KeyValueData,
+    level: number = 0
+  ): React.ReactNode => {
+    if (Array.isArray(data)) {
+      // Render array as a nested List
+      return (
+        <List sx={{ pl: 0, width: "100%" }}>
+          {data.map((item, index) => (
+            <React.Fragment key={index}>
+              {renderKeyValuePairs(item, level + 1)}
+              {/* Add separator between array items */}
+              {index < data.length - 1 && (
+                <Divider sx={{ width: "100%", bgcolor: "#e0e0e0", my: 1 }} />
+              )}
+            </React.Fragment>
+          ))}
+        </List>
+      );
+    } else if (typeof data === "object" && data !== null) {
+      const entries = Object.entries(data as KeyValueObject);
+      return (
+        <>
+          {entries.map(([key, value], index) => (
+            <React.Fragment key={`${key}-${index}`}>
+              <ListItem
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  opacity: 0,
+                  transform: "translateY(10px)",
+                  animation: `fadeIn 0.5s ease-in ${index * 0.2}s forwards`,
+                  pl: level,
+                  width: "100%",
+                  "@keyframes fadeIn": {
+                    from: { opacity: 0, transform: "translateY(10px)" },
+                    to: { opacity: 1, transform: "translateY(0)" },
+                  },
+                }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  {key}:
+                </Typography>
+                {typeof value === "string" && value.includes("\n") ? (
+                  <ReactMarkdown
+                    components={{
+                      div: ({ children }) => (
+                        <Box
+                          component="p"
+                          sx={{
+                            pl: 0,
+                            color: "grey.700",
+                            paddingLeft: 0,
+                            display: "flex",
+                            flexDirection: "column",
+                            listStyleType: "none",
+                            gap: "0.5rem",
+                            width: "100%",
+                          }}
+                        >
+                          {children}
+                        </Box>
+                      ),
+                      p: ({ children }) => (
+                        <Typography component="span" variant="body2">
+                          {children}
+                        </Typography>
+                      ),
+                    }}
+                  >
+                    {value}
+                  </ReactMarkdown>
+                ) : typeof value === "string" ? (
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => (
+                        <Typography variant="body2" sx={{ color: "grey.800" }}>
+                          {children}
+                        </Typography>
+                      ),
+                    }}
+                  >
+                    {value || "N/A"}
+                  </ReactMarkdown>
+                ) : Array.isArray(value) ||
+                  (typeof value === "object" && value !== null) ? (
+                  // Render nested object/array as a nested List
+                  <List sx={{ width: "100%" }}>
+                    {renderKeyValuePairs(value, level + 1)}
+                  </List>
+                ) : (
+                  <Typography variant="body2" sx={{ color: "grey.800" }}>
+                    {String(value)}
+                  </Typography>
+                )}
+              </ListItem>
+              {/* Add separator after each key except the last */}
+              {index < entries.length - 1 && (
+                <Divider sx={{ width: "100%", bgcolor: "#e0e0e0", my: 1 }} />
+              )}
+            </React.Fragment>
+          ))}
+        </>
+      );
+    } else {
+      return (
+        <ListItem
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            pl: 0,
+            width: "100%",
+          }}
+        >
+          <Typography variant="body2" sx={{ color: "grey.800" }}>
+            {String(data)}
+          </Typography>
+        </ListItem>
+      );
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -328,25 +478,31 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
           borderRight: "1px solid #ddd",
           p: 2,
           paddingBottom: "2px",
+          paddingTop: "0px",
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {response ? (
             <>
-              <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
-                Auto-populated Data
-              </Typography>
-              <Paper
-                elevation={3}
-                sx={{
-                  p: 1,
-                  height: "593px",
-                  overflow: "hidden",
-                  overflowY: "auto",
-                  borderRadius: "10px",
-                  scrollbarWidth: "thin",
-                }}
+               <Paper
+              elevation={5}
+              sx={{
+                p: 1,
+                height: "calc(100vh - 122px)", 
+                maxHeight: "calc(100vh - 122px)", 
+                overflow: "hidden",
+                overflowY: "auto",
+                borderRadius: "10px",
+                scrollbarWidth: "thin",
+              }}
               >
+                <Typography
+                  variant="h6"
+                  sx={{ ml: "15px", mt: 1, fontWeight: "bold" }}
+                >
+                  Patient Information
+                </Typography>
+
                 <List>
                   {displayedTemplate.map((item, index) => (
                     <React.Fragment key={index}>
@@ -356,6 +512,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                           flexDirection: "column",
                           alignItems: "flex-start",
                           opacity: 0,
+                          paddingTop: "10px",
                           transform: "translateY(10px)",
                           animation: `fadeIn 0.5s ease-in ${
                             index * 0.2
@@ -380,7 +537,6 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                                 <Box
                                   component="p"
                                   sx={{
-                                    pl: 2,
                                     color: "grey.700",
                                     paddingLeft: 0,
                                     display: "flex",
@@ -418,11 +574,30 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                           </ReactMarkdown>
                         )}
                       </ListItem>
-                      {index < displayedTemplate.length - 1 && (
+                      {index <= displayedTemplate.length - 1 && (
                         <Divider sx={{ mb: 1, mt: 2 }} />
                       )}{" "}
                     </React.Fragment>
                   ))}
+                  <Typography
+                    variant="h6"
+                    sx={{ ml: "15px", mt: 4, fontWeight: "bold" }}
+                  >
+                    Template Information
+                  </Typography>
+                  {response?.populatedTemplate &&
+                  response.populatedTemplate.length > 0
+                    ? response.populatedTemplate.map((item, index) => (
+                        <Box key={index}>
+                          <Box sx={{ mb: 0, p: 2, pt: 2 }}>
+                            {renderKeyValuePairs(item as KeyValueObject)}
+                          </Box>
+                          {index < response.populatedTemplate.length - 1 && (
+                            <Divider sx={{ mt: 0 }} />
+                          )}
+                        </Box>
+                      ))
+                    : null}
                 </List>
               </Paper>
             </>
@@ -472,7 +647,8 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
           pt: 0.1,
           boxShadow: 0,
           width: "50%",
-          height: "664px",
+          height: "calc(100vh - 122px)", 
+          maxHeight: "calc(100vh - 122px)", 
           overflow: "hidden",
           overflowY: "auto",
         }}
@@ -533,7 +709,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                   {/* Show the updated clinical question */}
                 </Typography>
               )}
-              
+
               {isEditing && (
                 <Box sx={{ display: "flex", gap: 2 }}>
                   <Button
@@ -635,12 +811,51 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                 borderRadius: 2,
                 boxShadow: 2,
                 marginBottom: "2px",
-                transition: "all 0.5s ease-in-out", // Smooth transition for height and opacity
-                opacity: typedText ? 1 : 0, // Fade in when text is displayed
-                height: typedText ? "auto" : 0, // Adjust height dynamically
-                overflow: "hidden", // Prevent content overflow during transition
+                transition: "all 0.5s ease-in-out",
+                opacity: typedText ? 1 : 0,
+                height: typedText ? "auto" : 0,
+                overflow: "hidden",
+                position: "relative", // Add for absolute button
               }}
+              id="ai-generated-response-paper"
             >
+              {/* Copy All Text Button */}
+              <IconButton
+                aria-label="Copy all text"
+                size="small"
+                sx={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  zIndex: 2,
+                  bgcolor: "transparent",
+                  "&:hover": { bgcolor: "#e0e0e0" },
+                }}
+                onClick={() => {
+                  // Copy the HTML content of the Paper (preserving formatting)
+                  const paper = document.getElementById(
+                    "ai-generated-response-paper"
+                  );
+                  if (paper) {
+                    const html = paper.innerHTML;
+                    // Use Clipboard API to copy as HTML
+                    if (navigator.clipboard && window.ClipboardItem) {
+                      const blob = new Blob([html], { type: "text/html" });
+                      const item = new window.ClipboardItem({
+                        "text/html": blob,
+                      });
+                      navigator.clipboard.write([item]);
+                    } else {
+                      // fallback: copy as plain text
+                      navigator.clipboard.writeText(paper.innerText);
+                    }
+                  }
+                }}
+              >
+                <Tooltip title="Copy response" arrow placement="top">
+                  <ContentCopyIcon fontSize="small" />
+                </Tooltip>
+              </IconButton>
               <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
                 AI Generated Response
               </Typography>
@@ -675,12 +890,30 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                 {response.specialistAIResponse.citations && (
                   <>
                     {response.specialistAIResponse.citations.length > 0 && (
-                      <Typography
-                        variant="h6"
-                        sx={{ mb: 1, mt: 2, fontWeight: "bold" }}
-                      >
-                        Quick References
-                      </Typography>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          gap: 1,
+                          textAlign: 'start',
+                          WebkitBoxFlex: 1,
+                          flexGrow: 1,
+                          margin: '12px 0px',
+                          alignItems: 'center',
+                        }}>
+                        <svg
+                          width="24" height="24"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2zm1-9h1V4H2v1h1zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2zm5-6v2h14V5zm0 14h14v-2H7zm0-6h14v-2H7z" />
+                        </svg>
+                        <Typography
+                          variant="h6"
+                          sx={{fontWeight: "bold" }}
+                        >
+                          References
+                        </Typography>
+                      </Box>
                     )}
                     <List
                       sx={{
@@ -795,17 +1028,8 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                                     {children}
                                   </span>
                                 ),
-                                p: ({ children }) => <span>{children}</span>,
                                 ul: ({ children }) => (
                                   <span className="botReply">{children}</span>
-                                ),
-                                hr: () => (
-                                  <span
-                                    style={{
-                                      borderTop: "1px solid #ccc",
-                                      display: "flex",
-                                    }}
-                                  />
                                 ),
                                 h3: ({ children }) => (
                                   <span
@@ -841,16 +1065,30 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                               "citations" in msg.text &&
                               msg.text.citations.length > 0 && (
                                 <>
-                                  <Typography
-                                    variant="h6"
-                                    sx={{
-                                      mb: 1,
-                                      mt: 2,
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    Quick References
-                                  </Typography>
+                                  <Box
+                                  sx={{
+                                    display: 'flex',
+                                    textAlign: 'start',
+                                    WebkitBoxFlex: 1,
+                                    flexGrow: 1,
+                                    margin: '12px 0px',
+                                    alignItems: 'center',
+                                  }}>
+                                     <svg
+                                      width="24" height="24"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2zm1-9h1V4H2v1h1zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2zm5-6v2h14V5zm0 14h14v-2H7zm0-6h14v-2H7z" />
+                                    </svg>
+                                    <Typography
+                                      variant="h6"
+                                      sx={{fontWeight: "bold" }}
+                                    >
+                                      References
+                                    </Typography>
+                                  </Box>
+
                                   <List
                                     sx={{
                                       listStyleType: "disc",
@@ -902,7 +1140,12 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                 ))}
               </Paper>
             )}
-
+            {!barLoading ? (
+              <FollowUpQuestions
+                barLoading={barLoading}
+                onSuggestionClick={setSearchTerm}
+              />
+            ) : null}
             {!barLoading && showScrollButton && (
               <Button
                 variant="contained"
@@ -910,7 +1153,7 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                 sx={{
                   mt: 2,
                   position: "sticky",
-                  bottom: 123,
+                  bottom: 63,
                   right: 0,
                   bgcolor: "#4C5FD5", // match that blue
                   color: "white",
@@ -948,9 +1191,9 @@ const ConsultPage: React.FC<ConsultPageProps> = ({
                 }}
               >
                 <SearchBar
-                  data={response.specialistAIResponse.summaryResponse}
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
                   setBotReply={setBotReply}
-                  barLoading={barLoading}
                 />
               </Box>
             )}

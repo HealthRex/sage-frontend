@@ -1,0 +1,14 @@
+node_modules
+build
+*.log
+*.md
+.git
+.github
+.gitignore
+.idea
+coverage
+Dockerfile
+.dockerignore
+npm-debug.log
+.next
+src/app/poc

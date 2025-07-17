@@ -18,7 +18,7 @@ export default function Footer() {
         }}
       >
         <p style={{ fontSize: "0.9rem", lineHeight: 1.6 }}>
-          Stanford Econsult is a research product, is not medical care, and should be used with a healthcare professional
+          SAGE is a research product, is not medical care, and should be used with a healthcare professional
         </p>
         {/* Uncomment this section if needed */}
         {/* <p style={{ fontSize: "0.9rem", lineHeight: 1.6 }}>

@@ -1,5 +1,5 @@
 {
-  "name": "my-app",
+  "name": "sage-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -19,6 +19,7 @@
     "@server-sent-stream/web": "^1.0.3",
     "next": "^15.1.6",
     "react": "^19.0.0",
+    "react-cookie": "^8.0.1",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "react-scroll-to-bottom": "^4.2.0",

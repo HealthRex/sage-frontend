@@ -10,9 +10,24 @@ import {
 } from "@mui/material";
 import ClinicalQuestionPage from "./clinicalQuestionPage";
 import ConsultPage from "./consultPage";
-import EventSourceStream from '@server-sent-stream/web';
 
 const steps = ["Clinical Question", "Review"];
+
+interface ApiResponse {
+  specialistSummary: string;
+  basicPatientSummary: Array<{
+    field: string;
+    value: string;
+  }>;
+  populatedTemplate: Array<Record<string, unknown>>; // Generic and flexible
+  specialistAIResponse: {
+    summaryResponse: string;
+    citations: Array<{
+      name: string;
+      url: string;
+    }>;
+  };
+}
 
 export default function MultiStepPageComponent() {
   const [activeStep, setActiveStep] = useState<number>(0);
@@ -23,63 +38,63 @@ export default function MultiStepPageComponent() {
   const [notesError, setNotesError] = useState("");
   const [loading, setLoading] = useState<boolean>(false); // New loading state
 
-  interface ApiResponse {
-    specialistSummary: string;
-    populatedTemplate: Array<{ field: string; value: string }>;
-    specialistAIResponse: {
-      summaryResponse: string;
-      citations:  Array<{ name: string; url: string }>;
-    };
-  }
-
-  
 
   async function handleSubmit(requestBody: { question: string; clinicalNotes: string }) {
-    setApiResponse(null);
-    setLoading(true); // Set loading to true when starting the request
-
+    setApiResponse(null)
+    setLoading(true)
+  
     try {
-        const response = await fetch("https://api.sageconsult.ai/referral-streamed", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(requestBody),
-        });
-
-        if (!response.ok || !response.body) {
-            throw new Error("Network response was not ok or body is null");
-        }
-
-        const stream = response.body;
-        const decoder = new EventSourceStream();
-        stream.pipeThrough(decoder);
-
-        // Read from the EventSourceStream
-        const reader = decoder.readable.getReader();
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done || value.data == null) break;
-
-            const jsonStr = value.data;
-            try {
-                const parsed = JSON.parse(jsonStr);
-                setApiResponse((prev) => ({
+      const response = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + '/referral-streamed', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+        credentials: "include"
+      })
+      if (!response.ok || !response.body) {
+        throw new Error("Network response was not ok or body is null")
+      }
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ""
+  
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+  
+        if (value) {
+          buffer += decoder.decode(value, { stream: true })
+  
+          // Process any complete SSE messages in the buffer
+          const parts = buffer.split("\n\n")
+          buffer = parts.pop() || ""  // Keep any incomplete chunk in buffer
+  
+          for (const part of parts) {
+            const lines = part.split("\n")
+            for (const line of lines) {
+              if (line.startsWith("data:")) {
+                const jsonStr = line.replace("data:", "").trim()
+                try {
+                  const parsed = JSON.parse(jsonStr)
+                  setApiResponse((prev) => ({
                     ...(prev || {}),
                     ...parsed,
-                }));
-            } catch (err) {
-                console.warn("Invalid JSON in data:", err);
-                console.warn("Invalid JSON: ", jsonStr);
+                  }))
+                } catch (err) {
+                  console.warn("Invalid JSON in data:", err)
+                }
+              }
             }
+          }
         }
+      }
     } catch (error) {
-        console.error("Error during streaming:", error);
+      console.error("Error during streaming:", error)
     } finally {
-        setLoading(false); // Set loading to false after all chunks are received
+      setLoading(false)
     }
-}
+  }
 
 
 
@@ -102,7 +117,7 @@ export default function MultiStepPageComponent() {
         question: clinicalQuestion,
         clinicalNotes: clinicalNotes,
     };
-      handleSubmit(requestBody);
+         handleSubmit(requestBody);
     }
     setActiveStep((prev) => prev + 1);
   };
@@ -139,7 +154,7 @@ export default function MultiStepPageComponent() {
            null
           ) : (
             <Button variant="contained" onClick={handleNext}>
-              Generate Report
+              Generate Response
             </Button>
           )}
       </Box>
