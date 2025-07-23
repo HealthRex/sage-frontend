@@ -17,7 +17,7 @@ import ListIcon from '@mui/icons-material/List';
 import SearchIcon from '@mui/icons-material/Search';
 import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
 import { styled } from '@mui/material/styles';
-;
+import { ChevronRight } from '@mui/icons-material';
 
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
@@ -241,8 +241,9 @@ export function FollowUpQuestions({
             ))
           : suggestions.map((question, index) => (
               <Box key={index}>
-                <ListItemButton onClick={() => onSuggestionClick(question)}>
+                <ListItemButton onClick={() => onSuggestionClick(question)} sx={{ justifyContent: 'space-between', gap:"10px", alignItems: "flex-start"  , '&:hover': { opacity: 0.7, backgroundColor: "white"} }}>
                   <ListItemText primary={question} />
+                  <ChevronRight sx={{ color: '#f26c4f' }} /> {/* Orange arrow */}
                 </ListItemButton>
                 {index < suggestions.length - 1 && <Divider />}
               </Box>

@@ -346,13 +346,13 @@ const scrollToBottom = () => {
     if (Array.isArray(data)) {
       // Render array as a nested List
       return (
-        <List sx={{ pl: 0, width: "100%" }}>
+        <List sx={{ pl: 0, pr: 0, m: 0, width: "100%" }}>
           {data.map((item, index) => (
             <React.Fragment key={index}>
               {renderKeyValuePairs(item, level + 1)}
               {/* Add separator between array items */}
               {index < data.length - 1 && (
-                <Divider sx={{ width: "100%", bgcolor: "#e0e0e0", my: 1 }} />
+                <Divider sx={{ width: "100%", my: 0, borderColor: "#e0e0e0" }} />
               )}
             </React.Fragment>
           ))}
@@ -372,7 +372,10 @@ const scrollToBottom = () => {
                   opacity: 0,
                   transform: "translateY(10px)",
                   animation: `fadeIn 0.5s ease-in ${index * 0.2}s forwards`,
-                  pl: level,
+                  pl: level - 1,
+                  pr: 0,
+                  m: 0,
+                       
                   width: "100%",
                   "@keyframes fadeIn": {
                     from: { opacity: 0, transform: "translateY(10px)" },
@@ -391,13 +394,14 @@ const scrollToBottom = () => {
                           component="p"
                           sx={{
                             pl: 0,
+                            pr: 0,
                             color: "grey.700",
-                            paddingLeft: 0,
                             display: "flex",
                             flexDirection: "column",
                             listStyleType: "none",
                             gap: "0.5rem",
                             width: "100%",
+                            m: 0,
                           }}
                         >
                           {children}
@@ -427,7 +431,7 @@ const scrollToBottom = () => {
                 ) : Array.isArray(value) ||
                   (typeof value === "object" && value !== null) ? (
                   // Render nested object/array as a nested List
-                  <List sx={{ width: "100%" }}>
+                  <List sx={{ width: "100%", pl: 0, pr: 0, m: 0 }}>
                     {renderKeyValuePairs(value, level + 1)}
                   </List>
                 ) : (
@@ -438,7 +442,7 @@ const scrollToBottom = () => {
               </ListItem>
               {/* Add separator after each key except the last */}
               {index < entries.length - 1 && (
-                <Divider sx={{ width: "100%", bgcolor: "#e0e0e0", my: 1 }} />
+                <Divider sx={{ width: "100%", my: 0, borderColor: "#e0e0e0" }} />
               )}
             </React.Fragment>
           ))}
@@ -452,6 +456,8 @@ const scrollToBottom = () => {
             flexDirection: "column",
             alignItems: "flex-start",
             pl: 0,
+            pr: 0,
+            m: 0,
             width: "100%",
           }}
         >
@@ -481,124 +487,280 @@ const scrollToBottom = () => {
           paddingTop: "0px",
         }}
       >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 0, m: 0 }}>
           {response ? (
             <>
-               <Paper
-              elevation={5}
-              sx={{
-                p: 1,
-                height: "calc(100vh - 122px)", 
-                maxHeight: "calc(100vh - 122px)", 
-                overflow: "hidden",
-                overflowY: "auto",
-                borderRadius: "10px",
-                scrollbarWidth: "thin",
-              }}
+              <Paper
+                elevation={5}
+                sx={{
+                  p: 2,
+                  m: 0,
+                  height: "calc(100vh - 122px)",
+                  maxHeight: "calc(100vh - 122px)",
+                  overflow: "hidden",
+                  overflowY: "auto",
+                  borderRadius: "10px",
+                  scrollbarWidth: "thin",
+                }}
               >
-                <Typography
-                  variant="h6"
-                  sx={{ ml: "15px", mt: 1, fontWeight: "bold" }}
-                >
-                  Patient Information
-                </Typography>
-
-                <List>
-                  {displayedTemplate.map((item, index) => (
-                    <React.Fragment key={index}>
-                      <ListItem
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-start",
-                          opacity: 0,
-                          paddingTop: "10px",
-                          transform: "translateY(10px)",
-                          animation: `fadeIn 0.5s ease-in ${
-                            index * 0.2
-                          }s forwards`,
-                          "@keyframes fadeIn": {
-                            from: { opacity: 0, transform: "translateY(10px)" },
-                            to: { opacity: 1, transform: "translateY(0)" },
-                          },
-                        }}
-                      >
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ fontWeight: "bold" }}
-                        >
-                          {item.field}:
-                        </Typography>
-                        {typeof item.value === "string" &&
-                        item.value.includes("\n") ? (
-                          <ReactMarkdown
-                            components={{
-                              div: ({ children }) => (
-                                <Box
-                                  component="p"
-                                  sx={{
-                                    color: "grey.700",
-                                    paddingLeft: 0,
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    listStyleType: "none",
-                                    gap: "0.5rem",
-                                  }}
-                                >
-                                  {children}
-                                </Box>
-                              ),
-                              p: ({ children }) => (
-                                <Typography component="span" variant="body2">
-                                  {children}
-                                </Typography>
-                              ),
-                            }}
-                          >
-                            {item.value}
-                          </ReactMarkdown>
-                        ) : (
-                          <ReactMarkdown
-                            components={{
-                              p: ({ children }) => (
-                                <Typography
-                                  variant="body2"
-                                  sx={{ color: "grey.800" }}
-                                >
-                                  {children}
-                                </Typography>
-                              ),
-                            }}
-                          >
-                            {item.value || "N/A"}
-                          </ReactMarkdown>
-                        )}
-                      </ListItem>
-                      {index <= displayedTemplate.length - 1 && (
-                        <Divider sx={{ mb: 1, mt: 2 }} />
-                      )}{" "}
-                    </React.Fragment>
-                  ))}
-                  <Typography
-                    variant="h6"
-                    sx={{ ml: "15px", mt: 4, fontWeight: "bold" }}
-                  >
-                    Template Information
+                <Box sx={{ px: 0, pt: 0, m: 0 }}>
+                  <Typography variant="h6" sx={{ fontWeight: "bold", p: 0, m: 0, mb:2 }}>
+                    Patient Information
                   </Typography>
+                </Box>
+                <List sx={{ p: 0, m: 0 , mb:3}}>
+                  {displayedTemplate.length > 1 ? (
+                    <>
+                      {/* First two items on one line */}
+                      <Box sx={{ display: "flex", gap: 2, mb: 1 }}>
+                        {displayedTemplate.slice(0, 2).map((item, index) => (
+                          <ListItem
+                            key={index}
+                            sx={{
+                              flex: 1,
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "flex-start",
+                              opacity: 0,
+                              px: 0,
+                              m: 0,
+                              pl: 2,
+                              pt: 1,
+                              pb: 1,
+                              borderBottom: "1px solid #e0e0e0",
+                              transform: "translateY(10px)",
+                              animation: `fadeIn 0.5s ease-in ${index * 0.2}s forwards`,
+                              "@keyframes fadeIn": {
+                                from: { opacity: 0, transform: "translateY(10px)" },
+                                to: { opacity: 1, transform: "translateY(0)" },
+                              },
+                            }}
+                          >
+                            <Typography
+                              variant="subtitle1"
+                              sx={{ fontWeight: "bold", p: 0, m: 0 }}
+                            >
+                              {item.field}:
+                            </Typography>
+                            {typeof item.value === "string" && item.value.includes("\n") ? (
+                              <ReactMarkdown
+                                components={{
+                                  div: ({ children }) => (
+                                    <Box
+                                      component="p"
+                                      sx={{
+                                        color: "grey.700",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        listStyleType: "none",
+                                        gap: "0.5rem",
+                                        p: 0,
+                                        m: 0,
+                                      }}
+                                    >
+                                      {children}
+                                    </Box>
+                                  ),
+                                  p: ({ children }) => (
+                                    <Typography component="span" variant="body2" sx={{ p: 0, m: 0 }}>
+                                      {children}
+                                    </Typography>
+                                  ),
+                                }}
+                              >
+                                {item.value}
+                              </ReactMarkdown>
+                            ) : (
+                              <ReactMarkdown
+                                components={{
+                                  p: ({ children }) => (
+                                    <Typography
+                                      variant="body2"
+                                      sx={{ color: "grey.800", p: 0, m: 0 }}
+                                    >
+                                      {children}
+                                    </Typography>
+                                  ),
+                                }}
+                              >
+                                {item.value || "N/A"}
+                              </ReactMarkdown>
+                            )}
+                          </ListItem>
+                        ))}
+                      </Box>
+                      {/* Rest of the items, one per line */}
+                      {displayedTemplate.slice(2).map((item, index) => (
+                        <React.Fragment key={index + 2}>
+                          <ListItem
+                            sx={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "flex-start",
+                              opacity: 0,
+                              px: 0,
+                              m: 0,
+                              pl: 2,
+                              pt: 1,
+                              pb: 1,
+                              borderBottom: "1px solid #e0e0e0",
+                              transform: "translateY(10px)",
+                              animation: `fadeIn 0.5s ease-in ${(index + 2) * 0.2}s forwards`,
+                              "@keyframes fadeIn": {
+                                from: { opacity: 0, transform: "translateY(10px)" },
+                                to: { opacity: 1, transform: "translateY(0)" },
+                              },
+                            }}
+                          >
+                            <Typography
+                              variant="subtitle1"
+                              sx={{ fontWeight: "bold", p: 0, m: 0 }}
+                            >
+                              {item.field}:
+                            </Typography>
+                            {typeof item.value === "string" && item.value.includes("\n") ? (
+                              <ReactMarkdown
+                                components={{
+                                  div: ({ children }) => (
+                                    <Box
+                                      component="p"
+                                      sx={{
+                                        color: "grey.700",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        listStyleType: "none",
+                                        gap: "0.5rem",
+                                        p: 0,
+                                        m: 0,
+                                      }}
+                                    >
+                                      {children}
+                                    </Box>
+                                  ),
+                                  p: ({ children }) => (
+                                    <Typography component="span" variant="body2" sx={{ p: 0, m: 0 }}>
+                                      {children}
+                                    </Typography>
+                                  ),
+                                }}
+                              >
+                                {item.value}
+                              </ReactMarkdown>
+                            ) : (
+                              <ReactMarkdown
+                                components={{
+                                  p: ({ children }) => (
+                                    <Typography
+                                      variant="body2"
+                                      sx={{ color: "grey.800", p: 0, m: 0 }}
+                                    >
+                                      {children}
+                                    </Typography>
+                                  ),
+                                }}
+                              >
+                                {item.value || "N/A"}
+                              </ReactMarkdown>
+                            )}
+                          </ListItem>
+                        </React.Fragment>
+                      ))}
+                    </>
+                  ) : (
+                    // If only one item, render as before
+                    displayedTemplate.map((item, index) => (
+                      <React.Fragment key={index}>
+                        <ListItem
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "flex-start",
+                            opacity: 0,
+                            px: 0,
+                            m: 0,
+                            pl: 2,
+                            pt: 1,
+                            pb: 1,
+                            borderBottom: "1px solid #e0e0e0",
+                            transform: "translateY(10px)",
+                            animation: `fadeIn 0.5s ease-in ${index * 0.2}s forwards`,
+                            "@keyframes fadeIn": {
+                              from: { opacity: 0, transform: "translateY(10px)" },
+                              to: { opacity: 1, transform: "translateY(0)" },
+                            },
+                          }}
+                        >
+                          <Typography
+                            variant="subtitle1"
+                            sx={{ fontWeight: "bold", p: 0, m: 0 }}
+                          >
+                            {item.field}:
+                          </Typography>
+                          {typeof item.value === "string" && item.value.includes("\n") ? (
+                            <ReactMarkdown
+                              components={{
+                                div: ({ children }) => (
+                                  <Box
+                                    component="p"
+                                    sx={{
+                                      color: "grey.700",
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      listStyleType: "none",
+                                      gap: "0.5rem",
+                                      p: 0,
+                                      m: 0,
+                                    }}
+                                  >
+                                    {children}
+                                  </Box>
+                                ),
+                                p: ({ children }) => (
+                                  <Typography component="span" variant="body2" sx={{ p: 0, m: 0 }}>
+                                    {children}
+                                  </Typography>
+                                ),
+                              }}
+                            >
+                              {item.value}
+                            </ReactMarkdown>
+                          ) : (
+                            <ReactMarkdown
+                              components={{
+                                p: ({ children }) => (
+                                  <Typography
+                                    variant="body2"
+                                    sx={{ color: "grey.800", p: 0, m: 0 }}
+                                  >
+                                    {children}
+                                  </Typography>
+                                ),
+                              }}
+                            >
+                              {item.value || "N/A"}
+                            </ReactMarkdown>
+                          )}
+                        </ListItem>
+                      </React.Fragment>
+                    ))
+                  )}
+                </List>
+                <Box sx={{ px: 0, pt: 0, m: 0 }}>
+                    <Typography variant="h6" sx={{ fontWeight: "bold", p: 0, m: 0, mb:2 }}>
+                      Template Information
+                    </Typography>
+                  </Box>
                   {response?.populatedTemplate &&
                   response.populatedTemplate.length > 0
                     ? response.populatedTemplate.map((item, index) => (
-                        <Box key={index}>
-                          <Box sx={{ mb: 0, p: 2, pt: 2 }}>
-                            {renderKeyValuePairs(item as KeyValueObject)}
-                          </Box>
+                           <React.Fragment key={index} >
+                            {renderKeyValuePairs(item as KeyValueObject, 0)}
                           {index < response.populatedTemplate.length - 1 && (
-                            <Divider sx={{ mt: 0 }} />
+                            <Divider sx={{ mt: 0, mb: 0 }} />
                           )}
-                        </Box>
+                          </React.Fragment>
                       ))
                     : null}
-                </List>
               </Paper>
             </>
           ) : (
@@ -606,31 +768,34 @@ const scrollToBottom = () => {
               <Typography
                 variant="h6"
                 sx={{
-                  mb: 2,
+                  mb: 0,
                   fontWeight: "bold",
                   animation: "fadeGlow 2s infinite",
+                  px: 0,
+                  p: 0,
+                  m: 0,
                 }}
               >
                 Loading...
               </Typography>
               {[...Array(1)].map((_, index) => (
                 <React.Fragment key={index}>
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ px: 0, p: 0, m: 0 }}>
                     {currentPhaseContent.heading}
                   </Typography>
                   {(showPhase1 || showPhase2 || showPhase3) && (
-                    <Box textAlign="left" sx={{ minHeight: 80 }}>
+                    <Box textAlign="left" sx={{ minHeight: 80, px: 0, p: 0, m: 0 }}>
                       {currentPhaseContent.steps
                         .slice(0, step)
                         .map((stepText, index) => (
-                          <Typography key={index} variant="body1">
+                          <Typography key={index} variant="body1" sx={{ p: 0, m: 0 }}>
                             {stepText}
                           </Typography>
                         ))}
                     </Box>
                   )}
-                  <Skeleton variant="text" width="90%" height={20} />
-                  <Skeleton variant="text" width="70%" height={20} />
+                  <Skeleton variant="text" width="90%" height={20} sx={{ px: 0, p: 0, m: 0 }} />
+                  <Skeleton variant="text" width="70%" height={20} sx={{ px: 0, p: 0, m: 0 }} />
                 </React.Fragment>
               ))}
             </>
@@ -917,41 +1082,30 @@ const scrollToBottom = () => {
                     )}
                     <List
                       sx={{
-                        listStyleType: "disc",
                         p: 0,
-                        pl: 1,
+                        pl: 2.5,
                         listStyle: "decimal",
                       }}
                     >
                       {response.specialistAIResponse.citations.map(
                         (citation, index) =>
                           citation.name ? ( // Ensure citation.name is not undefined or null
-                            <Link
+                            <ListItem
                               key={index}
+                              component="a"
                               href={citation.url}
                               target="_blank"
                               rel="noopener noreferrer"
+                              sx={{
+                                display: "list-item",
+                                p: 0.2,
+                                pl: 1,
+                                color: "blue",
+                                textDecoration: "underline",
+                              }}
                             >
-                              <ListItem
-                                sx={{
-                                  display: "list-item",
-                                  p: 0.2,
-                                  pl: 0,
-                                  color: "blue",
-                                  textDecoration: "underline",
-                                  opacity: 0,
-                                  animation: `fadeIn 0.5s ease-in ${
-                                    index * 0.2
-                                  }s forwards`, // Smooth fade-in for each citation
-                                  "@keyframes fadeIn": {
-                                    from: { opacity: 0 },
-                                    to: { opacity: 1 },
-                                  },
-                                }}
-                              >
-                                <ListItemText primary={citation.name} />
-                              </ListItem>
-                            </Link>
+                              <ListItemText primary={citation.name} />
+                            </ListItem>
                           ) : null // Skip rendering if citation.name is invalid
                       )}
                     </List>
@@ -1099,34 +1253,32 @@ const scrollToBottom = () => {
                                   >
                                     {msg.text.citations.map(
                                       (citation, citationIndex) => (
-                                        <Link
+                                        <ListItem
                                           key={`${idx}-${citationIndex}`}
+                                          component="a"
                                           href={citation.url}
                                           target="_blank"
                                           rel="noopener noreferrer"
+                                          sx={{
+                                            display: "list-item",
+                                            p: 0.2,
+                                            pl: 0,
+                                            color: "blue",
+                                            textDecoration: "underline",
+                                            opacity: 0,
+                                            animation: `fadeIn 0.5s ease-in ${
+                                              citationIndex * 0.2
+                                            }s forwards`,
+                                            "@keyframes fadeIn": {
+                                              from: { opacity: 0 },
+                                              to: { opacity: 1 },
+                                            },
+                                          }}
                                         >
-                                          <ListItem
-                                            sx={{
-                                              display: "list-item",
-                                              p: 0.2,
-                                              pl: 0,
-                                              color: "blue",
-                                              textDecoration: "underline",
-                                              opacity: 0,
-                                              animation: `fadeIn 0.5s ease-in ${
-                                                citationIndex * 0.2
-                                              }s forwards`,
-                                              "@keyframes fadeIn": {
-                                                from: { opacity: 0 },
-                                                to: { opacity: 1 },
-                                              },
-                                            }}
-                                          >
-                                            <ListItemText
-                                              primary={citation.name}
-                                            />
-                                          </ListItem>
-                                        </Link>
+                                          <ListItemText
+                                            primary={citation.name}
+                                          />
+                                        </ListItem>
                                       )
                                     )}
                                   </List>
