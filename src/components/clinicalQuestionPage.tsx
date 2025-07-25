@@ -61,7 +61,8 @@ export default function ClinicalQuestionPage({
         <TextField
           label="Enter your clinical question"
           multiline
-          rows={3}
+          minRows={3}
+          maxRows={6}
           onChange={handleQuestionChange}
           error={!!questionError}
         />
@@ -72,11 +73,12 @@ export default function ClinicalQuestionPage({
       <Typography variant="h6" align="left" sx={{ mb: 2, fontWeight: "bold" }}>
         What are your clinical notes?
       </Typography>
-      <FormControl fullWidth sx={{ mb: 0 }}>
+      <FormControl fullWidth sx={{ mb: 0}}>
         <TextField
           label="Enter your clinical notes"
           multiline
-          rows={7}
+          minRows={7}
+          maxRows={9}
           onChange={handleNotesChange}
           error={!!notesError}
         />
