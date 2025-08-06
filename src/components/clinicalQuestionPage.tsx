@@ -62,7 +62,7 @@ export default function ClinicalQuestionPage({
           label="Enter your clinical question"
           multiline
           minRows={3}
-          maxRows={6}
+          maxRows={7}
           onChange={handleQuestionChange}
           error={!!questionError}
         />
@@ -77,8 +77,8 @@ export default function ClinicalQuestionPage({
         <TextField
           label="Enter your clinical notes"
           multiline
-          minRows={7}
-          maxRows={9}
+          minRows={5}
+          maxRows={7}
           onChange={handleNotesChange}
           error={!!notesError}
         />
