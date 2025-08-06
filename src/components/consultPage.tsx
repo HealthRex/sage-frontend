@@ -14,7 +14,6 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import Divider from "@mui/material/Divider";
 import { FollowUpQuestions, SearchBar } from "./searchBar";
@@ -22,7 +21,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { useMemo } from "react"; // Ensure useMemo is imported
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded";
-
+import DownloadIcon from "@mui/icons-material/Download";
 interface ApiResponse {
   specialistSummary: string;
   basicPatientSummary: Array<{
@@ -161,11 +160,6 @@ const scrollToBottom = () => {
     return () => clearTimeout(timer);
   }, [phase, step]);
 
-  useEffect(() => {
-    if (response?.basicPatientSummary) {
-      setDisplayedTemplate(response.basicPatientSummary);
-    }
-  }, [response?.basicPatientSummary]);
 
   // Typing summaryResponse word-by-word
   useEffect(() => {
@@ -339,30 +333,122 @@ const scrollToBottom = () => {
     [key: string]: KeyValueData;
   }
 
-  const renderKeyValuePairs = (
-    data: KeyValueData,
-    level: number = 0
-  ): React.ReactNode => {
-    if (Array.isArray(data)) {
-      // Render array as a nested List
-      return (
-        <List sx={{ pl: 0, width: "100%" }}>
-          {data.map((item, index) => (
-            <React.Fragment key={index}>
-              {renderKeyValuePairs(item, level + 1)}
-              {/* Add separator between array items */}
-              {index < data.length - 1 && (
-                <Divider sx={{ width: "100%", bgcolor: "#e0e0e0", my: 1 }} />
-              )}
-            </React.Fragment>
-          ))}
-        </List>
-      );
-    } else if (typeof data === "object" && data !== null) {
-      const entries = Object.entries(data as KeyValueObject);
-      return (
-        <>
-          {entries.map(([key, value], index) => (
+  type JSONPrimitive = string | number | boolean | null;
+type JSONValue = JSONPrimitive | JSONObject | JSONArray;
+
+interface JSONObject {
+  [key: string]: JSONValue;
+}
+
+type JSONArray = JSONValue[];
+
+const [isEditingLeft, setIsEditingLeft] = useState(false);
+
+const [editableTemplate, setEditableTemplate] = useState<Array<{ field: string; value: string }>>([]);
+
+const [editablePopulatedTemplate, setEditablePopulatedTemplate] = useState<JSONValue[]>([]);
+const [displayedPopulatedTemplate, setDisplayedPopulatedTemplate] = useState<JSONValue[]>([]);
+
+useEffect(() => {
+  if (response?.basicPatientSummary) {
+    setDisplayedTemplate(response.basicPatientSummary);
+    setEditableTemplate(response.basicPatientSummary.map(item => ({ ...item })));
+  }
+  if (response?.populatedTemplate) {
+    setDisplayedPopulatedTemplate(response.populatedTemplate.map(item => ({ ...item })) as JSONValue[]);
+    setEditablePopulatedTemplate(response.populatedTemplate.map(item => ({ ...item })) as JSONValue[]);
+  }
+}, [response?.basicPatientSummary, response?.populatedTemplate]);
+
+const handleEditLeft = () => setIsEditingLeft(true);
+const handleCancelLeft = () => {
+  setEditableTemplate(displayedTemplate.map(item => ({ ...item })));
+  setEditablePopulatedTemplate(
+    displayedPopulatedTemplate.map(item =>
+      typeof item === "object" && item !== null && !Array.isArray(item)
+        ? { ...item }
+        : item
+    )
+  );
+  setIsEditingLeft(false);
+};
+const handleSaveLeft = () => {
+  setDisplayedTemplate(editableTemplate.map(item => ({ ...item })));
+  setDisplayedPopulatedTemplate(
+    editablePopulatedTemplate.map(item =>
+      typeof item === "object" && item !== null && !Array.isArray(item)
+        ? { ...item }
+        : item
+    )
+  );
+  setIsEditingLeft(false);
+};
+
+function updateNestedValue(
+  obj: JSONObject | JSONArray,
+  path: (string | number)[],
+  value: JSONValue
+): void {
+  if (path.length === 0) return;
+
+  const [first, ...rest] = path;
+
+  if (rest.length === 0) {
+    if (Array.isArray(obj) && typeof first === "number") {
+      obj[first] = value;
+    } else if (!Array.isArray(obj) && typeof first === "string") {
+      obj[first] = value;
+    }
+    return;
+  }
+
+  const next =
+    Array.isArray(obj) && typeof first === "number"
+      ? obj[first]
+      : !Array.isArray(obj) && typeof first === "string"
+      ? obj[first]
+      : undefined;
+
+  if (
+    typeof next === "object" &&
+    next !== null &&
+    (Array.isArray(next) || typeof next === "object")
+  ) {
+    updateNestedValue(next as JSONObject | JSONArray, rest, value);
+  }
+}
+
+
+const renderKeyValuePairs = (
+  data: JSONValue,
+  path: (string | number)[] = [],
+  isEditing: boolean = false,
+  setEditable?: (updater: (prev: JSONValue[]) => JSONValue[]) => void
+): React.ReactNode => {
+  if (Array.isArray(data)) {
+    return (
+      <List sx={{ pl: 0, pr: 0, m: 0, width: "100%" }}>
+        {data.map((item, index) => (
+          <React.Fragment key={index}>
+            {renderKeyValuePairs(item, [...path, index], isEditing, setEditable)}
+            {index < data.length - 1 && (
+              <Divider sx={{ width: "100%", my: 0, borderColor: "#e0e0e0" }} />
+            )}
+          </React.Fragment>
+        ))}
+      </List>
+    );
+  }
+
+  if (typeof data === "object" && data !== null) {
+    const entries = Object.entries(data);
+
+    return (
+      <>
+        {entries.map(([key, value], index) => {
+          const currentPath = [...path, key];
+
+          return (
             <React.Fragment key={`${key}-${index}`}>
               <ListItem
                 sx={{
@@ -372,7 +458,9 @@ const scrollToBottom = () => {
                   opacity: 0,
                   transform: "translateY(10px)",
                   animation: `fadeIn 0.5s ease-in ${index * 0.2}s forwards`,
-                  pl: level,
+                  pl: path.length,
+                  pr: 0,
+                  m: 0,
                   width: "100%",
                   "@keyframes fadeIn": {
                     from: { opacity: 0, transform: "translateY(10px)" },
@@ -383,7 +471,32 @@ const scrollToBottom = () => {
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                   {key}:
                 </Typography>
-                {typeof value === "string" && value.includes("\n") ? (
+
+                {isEditing && (typeof value === "string" || typeof value === "number" || typeof value === "boolean") ? (
+                  <TextField
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    multiline={typeof value === "string"}
+                    value={value ?? ""}
+                    onChange={e => {
+                      const newValue: JSONValue = typeof value === "number"
+                        ? Number(e.target.value)
+                        : typeof value === "boolean"
+                        ? e.target.value === "true"
+                        : e.target.value;
+
+                      if (setEditable) {
+                        setEditable(prev => {
+                          const updated = JSON.parse(JSON.stringify(prev)) as JSONValue[];
+                          updateNestedValue(updated, currentPath, newValue);
+                          return updated;
+                        });
+                      }
+                    }}
+                    sx={{ mt: 1, mb: 1 }}
+                  />
+                ) : typeof value === "string" && value.includes("\n") ? (
                   <ReactMarkdown
                     components={{
                       div: ({ children }) => (
@@ -391,13 +504,14 @@ const scrollToBottom = () => {
                           component="p"
                           sx={{
                             pl: 0,
+                            pr: 0,
                             color: "grey.700",
-                            paddingLeft: 0,
                             display: "flex",
                             flexDirection: "column",
                             listStyleType: "none",
                             gap: "0.5rem",
                             width: "100%",
+                            m: 0,
                           }}
                         >
                           {children}
@@ -424,11 +538,9 @@ const scrollToBottom = () => {
                   >
                     {value || "N/A"}
                   </ReactMarkdown>
-                ) : Array.isArray(value) ||
-                  (typeof value === "object" && value !== null) ? (
-                  // Render nested object/array as a nested List
-                  <List sx={{ width: "100%" }}>
-                    {renderKeyValuePairs(value, level + 1)}
+                ) : Array.isArray(value) || typeof value === "object" ? (
+                  <List sx={{ width: "100%", pl: 0, pr: 0, m: 0 }}>
+                    {renderKeyValuePairs(value, currentPath, isEditing, setEditable)}
                   </List>
                 ) : (
                   <Typography variant="body2" sx={{ color: "grey.800" }}>
@@ -436,32 +548,72 @@ const scrollToBottom = () => {
                   </Typography>
                 )}
               </ListItem>
-              {/* Add separator after each key except the last */}
               {index < entries.length - 1 && (
-                <Divider sx={{ width: "100%", bgcolor: "#e0e0e0", my: 1 }} />
+                <Divider sx={{ width: "100%", my: 0, borderColor: "#e0e0e0" }} />
               )}
             </React.Fragment>
-          ))}
-        </>
-      );
-    } else {
-      return (
-        <ListItem
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            pl: 0,
-            width: "100%",
-          }}
-        >
-          <Typography variant="body2" sx={{ color: "grey.800" }}>
-            {String(data)}
-          </Typography>
-        </ListItem>
-      );
-    }
+          );
+        })}
+      </>
+    );
+  }
+
+  return (
+    <ListItem
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        pl: 0,
+        pr: 0,
+        m: 0,
+        width: "100%",
+      }}
+    >
+      <Typography variant="body2" sx={{ color: "grey.800" }}>
+        {String(data)}
+      </Typography>
+    </ListItem>
+  );
+};
+
+
+const handleDownload = () => {
+    const leftContent = document.getElementById('left-panel')?.innerHTML || '';
+    const rightContent = document.getElementById('right-panel')?.innerHTML || '';
+    const combinedContent = `
+      <h1>Exported Content</h1>
+      <h2>Left Panel</h2>
+      ${leftContent}
+      <h2>Right Panel</h2>
+      ${rightContent}
+    `;
+    exportToWord(combinedContent);
   };
+
+  function exportToWord(combinedContent: string) {
+  // Create a complete HTML document for Word
+  const html =
+    `<html xmlns:o='urn:schemas-microsoft-com:office:office' ` +
+    `xmlns:w='urn:schemas-microsoft-com:office:word' ` +
+    `xmlns='http://www.w3.org/TR/REC-html40'>` +
+    `<head><meta charset='utf-8'><title>Exported Content</title></head><body>${combinedContent}</body></html>`;
+
+  // Create a Blob with the correct MIME type for Word
+  const blob = new Blob(['\ufeff', html], {
+    type: 'application/msword',
+  });
+
+  // Create a download link and trigger it
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'exported-content.doc';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
 
   return (
     <Box
@@ -472,65 +624,137 @@ const scrollToBottom = () => {
       }}
     >
       {/* Left Side (Lab Data & History) */}
-      <Box
-        sx={{
-          width: "50%",
-          borderRight: "1px solid #ddd",
-          p: 2,
-          paddingBottom: "2px",
-          paddingTop: "0px",
-        }}
-      >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {response ? (
-            <>
-               <Paper
-              elevation={5}
-              sx={{
-                p: 1,
-                height: "calc(100vh - 122px)", 
-                maxHeight: "calc(100vh - 122px)", 
-                overflow: "hidden",
-                overflowY: "auto",
-                borderRadius: "10px",
-                scrollbarWidth: "thin",
-              }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{ ml: "15px", mt: 1, fontWeight: "bold" }}
-                >
-                  Patient Information
-                </Typography>
 
-                <List>
-                  {displayedTemplate.map((item, index) => (
-                    <React.Fragment key={index}>
-                      <ListItem
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-start",
-                          opacity: 0,
-                          paddingTop: "10px",
-                          transform: "translateY(10px)",
-                          animation: `fadeIn 0.5s ease-in ${
-                            index * 0.2
-                          }s forwards`,
-                          "@keyframes fadeIn": {
-                            from: { opacity: 0, transform: "translateY(10px)" },
-                            to: { opacity: 1, transform: "translateY(0)" },
-                          },
-                        }}
+<Box
+id="left-panel"
+  sx={{
+    width: "50%",
+    borderRight: "1px solid #ddd",
+    p: 2,
+    paddingBottom: "2px",
+    paddingTop: "0px",
+  }}
+>
+  <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 0, m: 0 }}>
+    {response ? (
+      <>
+        <Paper
+          elevation={5}
+          sx={{
+            p: 2,
+            m: 0,
+            height: "calc(100vh - 122px)",
+            maxHeight: "calc(100vh - 122px)",
+            overflow: "hidden",
+            overflowY: "auto",
+            borderRadius: "10px",
+            scrollbarWidth: "thin",
+          }}
+        >
+         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: "bold", p: 0, m: 0, mb: 0 }}>
+              Patient Information
+            </Typography>
+            {!isEditingLeft && (
+              <>
+                <IconButton
+                  size="small"
+                  sx={{ ml: 1 }}
+                  onClick={handleEditLeft}
+                  disabled={barLoading}
+                >
+                  <Tooltip title="Edit" arrow placement="top">
+                    <EditNoteRoundedIcon fontSize="small" />
+                  </Tooltip>
+                </IconButton>
+                {/* Download Button */}
+                <IconButton
+                  size="small"
+                  sx={{ ml: 1 }}
+                  onClick={handleDownload}
+                  disabled={barLoading}
+                >
+                  <Tooltip title="Download Report" arrow placement="top">
+                    <DownloadIcon fontSize="small" />
+                  </Tooltip>
+                </IconButton>
+              </>
+            )}
+            {isEditingLeft && (
+              <Box sx={{ display: "flex", gap: 1, ml: 2 }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleSaveLeft}
+                  sx={{ minWidth: 64 }}
+                >
+                  Save
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleCancelLeft}
+                  sx={{ minWidth: 64 }}
+                >
+                  Cancel
+                </Button>
+              </Box>
+            )}
+          </Box>
+
+          <List sx={{ p: 0, m: 0, mb: 3 }}>
+            {(isEditingLeft ? editableTemplate : displayedTemplate).length > 1 ? (
+              <>
+                {/* First two items on one line */}
+                <Box sx={{ display: "flex", gap: 2, mb: 1 }}>
+                  {(isEditingLeft ? editableTemplate : displayedTemplate).slice(0, 2).map((item, index) => (
+                    <ListItem
+                      key={index}
+                      sx={{
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        opacity: 0,
+                        px: 0,
+                        m: 0,
+                        pl: 2,
+                        pt: 1,
+                        pb: 1,
+                        borderBottom: "1px solid #e0e0e0",
+                        transform: "translateY(10px)",
+                        animation: `fadeIn 0.5s ease-in ${index * 0.2}s forwards`,
+                        "@keyframes fadeIn": {
+                          from: { opacity: 0, transform: "translateY(10px)" },
+                          to: { opacity: 1, transform: "translateY(0)" },
+                        },
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ fontWeight: "bold", p: 0, m: 0 }}
                       >
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ fontWeight: "bold" }}
-                        >
-                          {item.field}:
-                        </Typography>
-                        {typeof item.value === "string" &&
-                        item.value.includes("\n") ? (
+                        {item.field}:
+                      </Typography>
+                      {isEditingLeft ? (
+                        <TextField
+                          variant="outlined"
+                          size="small"
+                          fullWidth
+                          multiline
+                          value={item.value}
+                          onChange={e => {
+                            const newValue = e.target.value;
+                            setEditableTemplate(prev => {
+                              const updated = [...prev];
+                              updated[index] = { ...updated[index], value: newValue };
+                              return updated;
+                            });
+                          }}
+                          sx={{ mt: 1, mb: 1 }}
+                        />
+                      ) : (
+                        typeof item.value === "string" && item.value.includes("\n") ? (
                           <ReactMarkdown
                             components={{
                               div: ({ children }) => (
@@ -538,18 +762,19 @@ const scrollToBottom = () => {
                                   component="p"
                                   sx={{
                                     color: "grey.700",
-                                    paddingLeft: 0,
                                     display: "flex",
                                     flexDirection: "column",
                                     listStyleType: "none",
                                     gap: "0.5rem",
+                                    p: 0,
+                                    m: 0,
                                   }}
                                 >
                                   {children}
                                 </Box>
                               ),
                               p: ({ children }) => (
-                                <Typography component="span" variant="body2">
+                                <Typography component="span" variant="body2" sx={{ p: 0, m: 0 }}>
                                   {children}
                                 </Typography>
                               ),
@@ -563,7 +788,7 @@ const scrollToBottom = () => {
                               p: ({ children }) => (
                                 <Typography
                                   variant="body2"
-                                  sx={{ color: "grey.800" }}
+                                  sx={{ color: "grey.800", p: 0, m: 0 }}
                                 >
                                   {children}
                                 </Typography>
@@ -572,75 +797,270 @@ const scrollToBottom = () => {
                           >
                             {item.value || "N/A"}
                           </ReactMarkdown>
-                        )}
-                      </ListItem>
-                      {index <= displayedTemplate.length - 1 && (
-                        <Divider sx={{ mb: 1, mt: 2 }} />
-                      )}{" "}
-                    </React.Fragment>
+                        )
+                      )}
+                    </ListItem>
                   ))}
-                  <Typography
-                    variant="h6"
-                    sx={{ ml: "15px", mt: 4, fontWeight: "bold" }}
-                  >
-                    Template Information
-                  </Typography>
-                  {response?.populatedTemplate &&
-                  response.populatedTemplate.length > 0
-                    ? response.populatedTemplate.map((item, index) => (
-                        <Box key={index}>
-                          <Box sx={{ mb: 0, p: 2, pt: 2 }}>
-                            {renderKeyValuePairs(item as KeyValueObject)}
-                          </Box>
-                          {index < response.populatedTemplate.length - 1 && (
-                            <Divider sx={{ mt: 0 }} />
-                          )}
-                        </Box>
-                      ))
-                    : null}
-                </List>
-              </Paper>
-            </>
-          ) : (
-            <>
-              <Typography
-                variant="h6"
-                sx={{
-                  mb: 2,
-                  fontWeight: "bold",
-                  animation: "fadeGlow 2s infinite",
-                }}
-              >
-                Loading...
-              </Typography>
-              {[...Array(1)].map((_, index) => (
+                </Box>
+                {/* Rest of the items, one per line */}
+                {(isEditingLeft ? editableTemplate : displayedTemplate).slice(2).map((item, index) => (
+                  <React.Fragment key={index + 2}>
+                    <ListItem
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        opacity: 0,
+                        px: 0,
+                        m: 0,
+                        pl: 2,
+                        pt: 1,
+                        pb: 1,
+                        borderBottom: "1px solid #e0e0e0",
+                        transform: "translateY(10px)",
+                        animation: `fadeIn 0.5s ease-in ${(index + 2) * 0.2}s forwards`,
+                        "@keyframes fadeIn": {
+                          from: { opacity: 0, transform: "translateY(10px)" },
+                          to: { opacity: 1, transform: "translateY(0)" },
+                        },
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ fontWeight: "bold", p: 0, m: 0 }}
+                      >
+                        {item.field}:
+                      </Typography>
+                      {isEditingLeft ? (
+                        <TextField
+                          variant="outlined"
+                          size="small"
+                          fullWidth
+                          multiline
+                          value={item.value}
+                          onChange={e => {
+                            const newValue = e.target.value;
+                            setEditableTemplate(prev => {
+                              const updated = [...prev];
+                              updated[index + 2] = { ...updated[index + 2], value: newValue };
+                              return updated;
+                            });
+                          }}
+                          sx={{ mt: 1, mb: 1 }}
+                        />
+                      ) : (
+                        typeof item.value === "string" && item.value.includes("\n") ? (
+                          <ReactMarkdown
+                            components={{
+                              div: ({ children }) => (
+                                <Box
+                                  component="p"
+                                  sx={{
+                                    color: "grey.700",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    listStyleType: "none",
+                                    gap: "0.5rem",
+                                    p: 0,
+                                    m: 0,
+                                  }}
+                                >
+                                  {children}
+                                </Box>
+                              ),
+                              p: ({ children }) => (
+                                <Typography component="span" variant="body2" sx={{ p: 0, m: 0 }}>
+                                  {children}
+                                </Typography>
+                              ),
+                            }}
+                          >
+                            {item.value}
+                          </ReactMarkdown>
+                        ) : (
+                          <ReactMarkdown
+                            components={{
+                              p: ({ children }) => (
+                                <Typography
+                                  variant="body2"
+                                  sx={{ color: "grey.800", p: 0, m: 0 }}
+                                >
+                                  {children}
+                                </Typography>
+                              ),
+                            }}
+                          >
+                            {item.value || "N/A"}
+                          </ReactMarkdown>
+                        )
+                      )}
+                    </ListItem>
+                  </React.Fragment>
+                ))}
+              </>
+            ) : (
+              // If only one item, render as before
+              (isEditingLeft ? editableTemplate : displayedTemplate).map((item, index) => (
                 <React.Fragment key={index}>
-                  <Typography variant="h6" gutterBottom>
-                    {currentPhaseContent.heading}
-                  </Typography>
-                  {(showPhase1 || showPhase2 || showPhase3) && (
-                    <Box textAlign="left" sx={{ minHeight: 80 }}>
-                      {currentPhaseContent.steps
-                        .slice(0, step)
-                        .map((stepText, index) => (
-                          <Typography key={index} variant="body1">
-                            {stepText}
-                          </Typography>
-                        ))}
-                    </Box>
-                  )}
-                  <Skeleton variant="text" width="90%" height={20} />
-                  <Skeleton variant="text" width="70%" height={20} />
+                  <ListItem
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-start",
+                      opacity: 0,
+                      px: 0,
+                      m: 0,
+                      pl: 2,
+                      pt: 1,
+                      pb: 1,
+                      borderBottom: "1px solid #e0e0e0",
+                      transform: "translateY(10px)",
+                      animation: `fadeIn 0.5s ease-in ${index * 0.2}s forwards`,
+                      "@keyframes fadeIn": {
+                        from: { opacity: 0, transform: "translateY(10px)" },
+                        to: { opacity: 1, transform: "translateY(0)" },
+                      },
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ fontWeight: "bold", p: 0, m: 0 }}
+                    >
+                      {item.field}:
+                    </Typography>
+                    {isEditingLeft ? (
+                      <TextField
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        multiline
+                        value={item.value}
+                        onChange={e => {
+                          const newValue = e.target.value;
+                          setEditableTemplate(prev => {
+                            const updated = [...prev];
+                            updated[index] = { ...updated[index], value: newValue };
+                            return updated;
+                          });
+                        }}
+                        sx={{ mt: 1, mb: 1 }}
+                      />
+                    ) : (
+                      typeof item.value === "string" && item.value.includes("\n") ? (
+                        <ReactMarkdown
+                          components={{
+                            div: ({ children }) => (
+                              <Box
+                                component="p"
+                                sx={{
+                                  color: "grey.700",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  listStyleType: "none",
+                                  gap: "0.5rem",
+                                  p: 0,
+                                  m: 0,
+                                }}
+                              >
+                                {children}
+                              </Box>
+                            ),
+                            p: ({ children }) => (
+                              <Typography component="span" variant="body2" sx={{ p: 0, m: 0 }}>
+                                {children}
+                              </Typography>
+                            ),
+                          }}
+                        >
+                          {item.value}
+                        </ReactMarkdown>
+                      ) : (
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => (
+                              <Typography
+                                variant="body2"
+                                sx={{ color: "grey.800", p: 0, m: 0 }}
+                              >
+                                {children}
+                              </Typography>
+                            ),
+                          }}
+                        >
+                          {item.value || "N/A"}
+                        </ReactMarkdown>
+                      )
+                    )}
+                  </ListItem>
                 </React.Fragment>
-              ))}
-            </>
-          )}
-        </Box>
-      </Box>
+              ))
+            )}
+          </List>
+          <Box sx={{ px: 0, pt: 0, m: 0, display: "flex", alignItems: "center" }}>
+            <Typography variant="h6" sx={{ fontWeight: "bold", p: 0, m: 0, mb: 2 }}>
+              Template Information
+            </Typography>
+          </Box>
+{isEditingLeft
+  ? editablePopulatedTemplate.map((item, idx) => (
+      <React.Fragment key={idx}>
+        {renderKeyValuePairs(item, [idx], true, setEditablePopulatedTemplate)}
+        {idx < editablePopulatedTemplate.length - 1 && <Divider />}
+      </React.Fragment>
+    ))
+  : displayedPopulatedTemplate.map((item, idx) => (
+      <React.Fragment key={idx}>
+        {renderKeyValuePairs(item, [idx])}
+        {idx < displayedPopulatedTemplate.length - 1 && <Divider />}
+      </React.Fragment>
+    ))}
+        </Paper>
+      </>
+    ) : (
+      // ...loading state as before...
+      <>
+        <Typography
+          variant="h6"
+          sx={{
+            mb: 0,
+            fontWeight: "bold",
+            animation: "fadeGlow 2s infinite",
+            px: 0,
+            p: 0,
+            m: 0,
+          }}
+        >
+          Loading...
+        </Typography>
+        {[...Array(1)].map((_, index) => (
+          <React.Fragment key={index}>
+            <Typography variant="h6" gutterBottom sx={{ px: 0, p: 0, m: 0 }}>
+              {currentPhaseContent.heading}
+            </Typography>
+            {(showPhase1 || showPhase2 || showPhase3) && (
+              <Box textAlign="left" sx={{ minHeight: 80, px: 0, p: 0, m: 0 }}>
+                {currentPhaseContent.steps
+                  .slice(0, step)
+                  .map((stepText, index) => (
+                    <Typography key={index} variant="body1" sx={{ p: 0, m: 0 }}>
+                      {stepText}
+                    </Typography>
+                  ))}
+              </Box>
+            )}
+            <Skeleton variant="text" width="90%" height={20} sx={{ px: 0, p: 0, m: 0 }} />
+            <Skeleton variant="text" width="70%" height={20} sx={{ px: 0, p: 0, m: 0 }} />
+          </React.Fragment>
+        ))}
+      </>
+    )}
+  </Box>
+</Box>
       {/* Right Side (AI-Generated Response) */}
 
       <Box
         ref={containerRef} // Attach the ref to the container
+        id="right-panel"
         sx={{
           pl: 2,
           pr: 2,
@@ -917,41 +1337,30 @@ const scrollToBottom = () => {
                     )}
                     <List
                       sx={{
-                        listStyleType: "disc",
                         p: 0,
-                        pl: 1,
+                        pl: 2.5,
                         listStyle: "decimal",
                       }}
                     >
                       {response.specialistAIResponse.citations.map(
                         (citation, index) =>
                           citation.name ? ( // Ensure citation.name is not undefined or null
-                            <Link
+                            <ListItem
                               key={index}
+                              component="a"
                               href={citation.url}
                               target="_blank"
                               rel="noopener noreferrer"
+                              sx={{
+                                display: "list-item",
+                                p: 0.2,
+                                pl: 1,
+                                color: "blue",
+                                textDecoration: "underline",
+                              }}
                             >
-                              <ListItem
-                                sx={{
-                                  display: "list-item",
-                                  p: 0.2,
-                                  pl: 0,
-                                  color: "blue",
-                                  textDecoration: "underline",
-                                  opacity: 0,
-                                  animation: `fadeIn 0.5s ease-in ${
-                                    index * 0.2
-                                  }s forwards`, // Smooth fade-in for each citation
-                                  "@keyframes fadeIn": {
-                                    from: { opacity: 0 },
-                                    to: { opacity: 1 },
-                                  },
-                                }}
-                              >
-                                <ListItemText primary={citation.name} />
-                              </ListItem>
-                            </Link>
+                              <ListItemText primary={citation.name} />
+                            </ListItem>
                           ) : null // Skip rendering if citation.name is invalid
                       )}
                     </List>
@@ -1099,34 +1508,32 @@ const scrollToBottom = () => {
                                   >
                                     {msg.text.citations.map(
                                       (citation, citationIndex) => (
-                                        <Link
+                                        <ListItem
                                           key={`${idx}-${citationIndex}`}
+                                          component="a"
                                           href={citation.url}
                                           target="_blank"
                                           rel="noopener noreferrer"
+                                          sx={{
+                                            display: "list-item",
+                                            p: 0.2,
+                                            pl: 0,
+                                            color: "blue",
+                                            textDecoration: "underline",
+                                            opacity: 0,
+                                            animation: `fadeIn 0.5s ease-in ${
+                                              citationIndex * 0.2
+                                            }s forwards`,
+                                            "@keyframes fadeIn": {
+                                              from: { opacity: 0 },
+                                              to: { opacity: 1 },
+                                            },
+                                          }}
                                         >
-                                          <ListItem
-                                            sx={{
-                                              display: "list-item",
-                                              p: 0.2,
-                                              pl: 0,
-                                              color: "blue",
-                                              textDecoration: "underline",
-                                              opacity: 0,
-                                              animation: `fadeIn 0.5s ease-in ${
-                                                citationIndex * 0.2
-                                              }s forwards`,
-                                              "@keyframes fadeIn": {
-                                                from: { opacity: 0 },
-                                                to: { opacity: 1 },
-                                              },
-                                            }}
-                                          >
-                                            <ListItemText
-                                              primary={citation.name}
-                                            />
-                                          </ListItem>
-                                        </Link>
+                                          <ListItemText
+                                            primary={citation.name}
+                                          />
+                                        </ListItem>
                                       )
                                     )}
                                   </List>
@@ -1234,3 +1641,6 @@ const scrollToBottom = () => {
 };
 
 export default ConsultPage;
+
+
+

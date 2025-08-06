@@ -12,7 +12,7 @@ export default function Footer() {
           left: 0,
           width: "100%",
           backgroundColor: "#182635",
-          padding: "20px",
+          padding: "16px",
           textAlign: "center",
           color: "white",
         }}
