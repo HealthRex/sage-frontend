@@ -68,7 +68,7 @@ export function SearchBar({
     ]);
 
     try {
-        const response = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + '/ask-pathway-streamed', {
+        const response = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + '/ask-specialist-streamed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: searchTerm }),
@@ -202,6 +202,8 @@ export function FollowUpQuestions({
       fetchSuggestions();
     }
   }, [barLoading]);
+
+  console.log("suggestions",suggestions)
 
   return (
     <Box
