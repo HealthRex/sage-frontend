@@ -33,11 +33,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 
-// interface SearchBarProps {
-//     barLoading: boolean;
-//     setBotReply: React.Dispatch<React.SetStateAction<{ from: string; text: string | { summaryResponse: string; citations: Array<{ name: string; url: string }> } }[]>>;
-// }
-
 export function SearchBar({
   searchTerm,
   setSearchTerm,
@@ -174,28 +169,31 @@ export function FollowUpQuestions({
   const [suggestionsLoading, setSuggestionsLoading] = useState(true);
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
-  const fetchSuggestions = async () => {
-    setSuggestionsLoading(true);
-    try {
-      const response = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + '/followup-questions', {
-        credentials: 'include',
-      });
+const fetchSuggestions = async () => {
+  setSuggestionsLoading(true);
+  try {
+    const response = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + '/followup-questions', {
+      credentials: 'include',
+    });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch suggestions');
-      }
-      const result = await response.json();
-      if (Array.isArray(result)) {
-        setSuggestions(result);
-      } else {
-        console.warn('Unexpected response format:', result);
-      }
-    } catch (error) {
-      console.error('Error fetching suggestions:', error);
-    } finally {
-      setSuggestionsLoading(false);
+    if (!response.ok) {
+      throw new Error('Failed to fetch suggestions');
     }
-  };
+    const result = await response.json();
+    // Fix: Use result.questions if available
+    if (Array.isArray(result.questions)) {
+      setSuggestions(result.questions);
+    } else if (Array.isArray(result)) {
+      setSuggestions(result);
+    } else {
+      console.warn('Unexpected response format:', result);
+    }
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+  } finally {
+    setSuggestionsLoading(false);
+  }
+};
 
   useEffect(() => {
     if (!barLoading) {
