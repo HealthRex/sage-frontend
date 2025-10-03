@@ -201,7 +201,6 @@ const fetchSuggestions = async () => {
     }
   }, [barLoading]);
 
-  console.log("suggestions",suggestions)
 
   return (
     <Box
